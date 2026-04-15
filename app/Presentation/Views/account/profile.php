@@ -1,280 +1,430 @@
 <?php include_once __DIR__ . '/../shaders/header.php'; ?>
 
 <style>
-    .profile-wrapper {
-        min-height: calc(100vh - 56px);
-        background: #f8f9fa;
-        padding: 3rem 1rem;
+    body { background-color: #f7f5f2; }
+
+    .profile-page {
+        max-width: 1000px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
     }
-    .profile-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    /* === LEFT: USER CARD === */
+    .user-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        border: 1px solid #f0ebe3;
         overflow: hidden;
-        margin-bottom: 2rem;
+        position: sticky;
+        top: 80px;
+        height: fit-content;
     }
-    .tier-header {
+    .user-card-header {
         background: <?php echo $tierColor; ?>;
-        color: white;
-        padding: 2.5rem;
+        padding: 2rem 1.5rem;
         text-align: center;
+        color: #fff;
         position: relative;
     }
-    .tier-icon {
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.2);
+    .user-avatar {
+        width: 90px; height: 90px;
         border-radius: 50%;
-        display: inline-flex;
+        border: 4px solid rgba(255,255,255,0.4);
+        background: rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 0.8rem;
+        overflow: hidden;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-display-name {
+        font-family: 'Lora', serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .user-role-badge {
+        display: inline-block;
+        padding: 3px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 0.5rem;
+        background: rgba(255,255,255,0.25);
+        backdrop-filter: blur(4px);
+    }
+    .user-tier-badge {
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+        gap: 6px;
+        margin-top: 0.6rem;
+        font-size: 0.85rem;
+        opacity: 0.9;
     }
-    .tier-name {
-        font-family: 'Lora', serif;
-        font-size: 2rem;
-        font-weight: bold;
-        margin: 0;
-    }
-    .user-stats {
-        padding: 2rem;
-    }
-    .stat-box {
-        text-align: center;
+
+    .user-info-section {
         padding: 1.5rem;
-        background: #f8f9fa;
-        border-radius: 8px;
     }
-    .stat-label {
-        font-size: 0.85rem;
-        color: #64748b;
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #0f172a;
-    }
-    
-    /* Progress Bar */
-    .progress-container {
-        margin-top: 2rem;
-    }
-    .progress-bar-bg {
-        height: 12px;
-        background: #e2e8f0;
-        border-radius: 6px;
-        overflow: hidden;
-        margin: 0.5rem 0;
-    }
-    .progress-bar-fill {
-        height: 100%;
-        background: <?php echo $tierColor; ?>;
-        border-radius: 6px;
-        transition: width 1s ease-in-out;
-    }
-    .progress-labels {
+    .info-item {
         display: flex;
-        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid #f5f0ea;
+    }
+    .info-item:last-child { border: none; }
+    .info-icon {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: #faf9f8;
+        display: flex; align-items: center; justify-content: center;
+        color: #8c7b6c;
         font-size: 0.85rem;
-        color: #64748b;
-        font-weight: 500;
-        margin-top: 4px;
+        flex-shrink: 0;
     }
-    
-    /* Order History */
-    .orders-section {
-        background: white;
+    .info-label { font-size: 0.72rem; color: #9ca3af; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .info-value { font-size: 0.92rem; color: #1a1a1a; font-weight: 500; word-break: break-word; }
+    .info-value.empty { color: #d1d5db; font-style: italic; font-weight: 400; }
+
+    .btn-edit-profile {
+        display: block;
+        width: calc(100% - 3rem);
+        margin: 0 1.5rem 1.5rem;
+        padding: 0.7rem;
+        background: #1a1a1a;
+        color: #fff;
+        border: none;
         border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        padding: 2rem;
-    }
-    .orders-title {
-        font-family: 'Lora', serif;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #0f172a;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid #f1f5f9;
-        padding-bottom: 0.75rem;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #f8fafc;
-    }
-    .label-status {
-        padding: 0.4em 0.8em;
-        font-size: 0.75em;
-        font-weight: 600;
-    }
-    .product-list {
-        margin: 0;
-        padding-left: 1rem;
         font-size: 0.9rem;
-        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    .btn-edit-profile:hover { background: #8c7b6c; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(140,123,108,0.3); }
+
+    /* === RIGHT: STATS + ORDERS === */
+    .right-col { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #f0ebe3;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
+    .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 0.6rem; }
+    .stat-card .stat-num { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 700; color: #1a1a1a; }
+    .stat-card .stat-txt { font-size: 0.78rem; color: #9ca3af; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-top: 0.3rem; }
+
+    /* Progress */
+    .tier-progress-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #f0ebe3;
+    }
+    .tier-progress-title { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: #1a1a1a; margin-bottom: 1rem; }
+    .tier-bar-bg { height: 10px; background: #f0ebe3; border-radius: 5px; overflow: hidden; }
+    .tier-bar-fill { height: 100%; background: <?php echo $tierColor; ?>; border-radius: 5px; transition: width 1.5s ease; }
+    .tier-labels { display: flex; justify-content: space-between; font-size: 0.8rem; color: #9ca3af; margin-top: 6px; }
+
+    /* Orders */
+    .orders-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #f0ebe3;
+    }
+    .orders-card-title {
+        font-family: 'Lora', serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #f0ebe3;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .order-row {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #faf9f8;
+        gap: 1rem;
+        transition: background 0.2s;
+    }
+    .order-row:hover { background: #faf9f8; margin: 0 -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem; border-radius: 12px; }
+    .order-row:last-child { border: none; }
+    .order-id { font-weight: 700; color: #8c7b6c; font-size: 0.85rem; white-space: nowrap; }
+    .order-products { flex: 1; font-size: 0.88rem; color: #4b5563; }
+    .order-products span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+    .order-total { font-weight: 700; color: #1a1a1a; font-size: 0.95rem; white-space: nowrap; }
+    .order-status {
+        padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+    }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-confirmed { background: #d1fae5; color: #059669; }
+    .status-cancelled { background: #fee2e2; color: #dc2626; }
+
+    .empty-orders {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #d1d5db;
+    }
+    .empty-orders i { font-size: 3rem; margin-bottom: 1rem; }
+
+    /* Edit Modal */
+    .edit-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; backdrop-filter: blur(4px); }
+    .edit-overlay.active { display: flex; align-items: center; justify-content: center; }
+    .edit-modal {
+        background: #fff; border-radius: 20px; padding: 2rem; width: 90%; max-width: 500px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.15); animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .edit-modal h3 { font-family: 'Lora', serif; font-size: 1.3rem; margin-bottom: 1.5rem; }
+    .edit-modal .form-group { margin-bottom: 1rem; }
+    .edit-modal label { font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+    .edit-modal input, .edit-modal textarea {
+        width: 100%; padding: 0.7rem 1rem; border: 1px solid #e5e7eb; border-radius: 10px;
+        font-size: 0.95rem; color: #1a1a1a; background: #faf9f8; outline: none; transition: border 0.3s;
+    }
+    .edit-modal input:focus, .edit-modal textarea:focus { border-color: #8c7b6c; background: #fff; }
+    .edit-modal-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
+    .edit-modal-actions button { flex: 1; padding: 0.7rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    .btn-cancel-edit { background: #f3f4f6; color: #6b7280; }
+    .btn-save-edit { background: #1a1a1a; color: #fff; }
+    .btn-save-edit:hover { background: #8c7b6c; }
+
+    @media (max-width: 768px) {
+        .profile-page { grid-template-columns: 1fr; }
+        .user-card { position: static; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
     }
 </style>
 
-<div class="profile-wrapper">
-    <div class="container container-md" style="max-width: 900px;">
-        <!-- Membership Card -->
-        <div class="profile-card">
-            <div class="tier-header">
-                <div class="tier-icon">
-                    <i class="fas <?php echo htmlspecialchars($icon ?? 'fa-user'); ?>"></i>
-                </div>
-                <h2 class="tier-name">Thành viên <?php echo htmlspecialchars($tier ?? ''); ?></h2>
-                <div class="mt-2" style="font-size: 1.1rem; opacity: 0.9;">Xin chào, <?php echo htmlspecialchars($user->fullName ?? $username); ?>!</div>
-            </div>
-            
-            <div class="user-stats">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="stat-box h-100">
-                            <div class="stat-label">Tổng Chi Tiêu</div>
-                            <div class="stat-value"><?php echo number_format($totalSpent ?? 0, 0, ',', '.'); ?>đ</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="stat-box h-100">
-                            <div class="stat-label">Số Đơn Hàng</div>
-                            <div class="stat-value"><?php echo count($orders ?? []); ?> đơn</div>
-                        </div>
-                    </div>
-                </div>
+<?php
+$_role = $user->role ?? 'customer';
+$_roleLabel = 'Khách hàng';
+$_roleIcon = 'fa-user';
+if ($_role === 'admin') { $_roleLabel = 'Quản trị viên'; $_roleIcon = 'fa-shield-alt'; }
+elseif ($_role === 'staff' || $_role === 'employee') { $_roleLabel = 'Nhân viên'; $_roleIcon = 'fa-id-badge'; }
 
-                <?php if (($nextThreshold ?? 0) > 0): ?>
-                <div class="progress-container">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fw-bold" style="color: <?php echo $tierColor; ?>; font-size: 0.95rem;"><?php echo htmlspecialchars($tier); ?></span>
-                        <span class="fw-bold text-muted" style="font-size: 0.95rem;"><?php echo htmlspecialchars($nextTier); ?></span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: <?php echo min(100, $progress ?? 0); ?>%"></div>
-                    </div>
-                    <div class="progress-labels">
-                        <span><?php echo number_format($totalSpent ?? 0, 0, ',', '.'); ?>đ</span>
-                        <span>Mục tiêu: <?php echo number_format($nextThreshold ?? 0, 0, ',', '.'); ?>đ</span>
-                    </div>
-                    <p class="text-center mt-3 mb-0" style="font-size: 0.9rem; color: #475569;">
-                        Hãy mua sắm thêm <strong><?php echo number_format(($nextThreshold ?? 0) - ($totalSpent ?? 0), 0, ',', '.'); ?>đ</strong> để thăng hạng <strong style="color: <?php echo $tierColor; ?>;"><?php echo htmlspecialchars($nextTier); ?></strong> nhé!
-                    </p>
-                </div>
+$_email = $user->email ?? '';
+$_phone = $user->phone ?? '';
+$_address = $user->address ?? '';
+$_avatar = $user->avatar ?? '';
+$_createdAt = $user->created_at ?? '';
+$_orderCount = count($orders ?? []);
+$_confirmedOrders = 0;
+$_pendingOrders = 0;
+foreach ($orders as $o) {
+    $st = $o->status ?? 'pending';
+    if ($st === 'confirmed' || $st == 1) $_confirmedOrders++;
+    elseif ($st === 'pending' || $st == 0) $_pendingOrders++;
+}
+?>
+
+<div class="profile-page">
+    <!-- LEFT: USER CARD -->
+    <div class="user-card">
+        <div class="user-card-header">
+            <div class="user-avatar">
+                <?php if (!empty($_avatar)): ?>
+                    <img src="/webbanhang/<?php echo htmlspecialchars($_avatar); ?>" alt="Avatar">
                 <?php else: ?>
-                <div class="progress-container text-center mt-4 p-3 bg-light rounded">
-                    <p class="fw-bold mb-0" style="color: <?php echo $tierColor; ?>; font-size: 1.1rem;">
-                        <i class="fas fa-trophy me-2"></i> Chúc mừng! Bạn đã đạt hạng cao nhất của hệ thống.
-                    </p>
-                </div>
+                    <i class="fas <?php echo $_roleIcon; ?>"></i>
                 <?php endif; ?>
+            </div>
+            <h2 class="user-display-name"><?php echo htmlspecialchars($user->fullname ?? $username); ?></h2>
+            <div class="user-role-badge"><i class="fas <?php echo $_roleIcon; ?> me-1"></i><?php echo $_roleLabel; ?></div>
+            <div class="user-tier-badge"><i class="fas <?php echo htmlspecialchars($icon ?? 'fa-user'); ?>"></i> <?php echo htmlspecialchars($tier ?? 'Thành viên mới'); ?></div>
+        </div>
+
+        <div class="user-info-section">
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-at"></i></div>
+                <div>
+                    <div class="info-label">Tên đăng nhập</div>
+                    <div class="info-value"><?php echo htmlspecialchars($username); ?></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                <div>
+                    <div class="info-label">Email</div>
+                    <div class="info-value <?php echo empty($_email) ? 'empty' : ''; ?>"><?php echo !empty($_email) ? htmlspecialchars($_email) : 'Chưa cập nhật'; ?></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-phone"></i></div>
+                <div>
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value <?php echo empty($_phone) ? 'empty' : ''; ?>"><?php echo !empty($_phone) ? htmlspecialchars($_phone) : 'Chưa cập nhật'; ?></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <div>
+                    <div class="info-label">Địa chỉ</div>
+                    <div class="info-value <?php echo empty($_address) ? 'empty' : ''; ?>"><?php echo !empty($_address) ? htmlspecialchars($_address) : 'Chưa cập nhật'; ?></div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div>
+                    <div class="info-label">Ngày tham gia</div>
+                    <div class="info-value"><?php echo !empty($_createdAt) ? date('d/m/Y', strtotime($_createdAt)) : 'N/A'; ?></div>
+                </div>
             </div>
         </div>
 
+        <button class="btn-edit-profile" onclick="document.getElementById('editOverlay').classList.add('active')">
+            <i class="fas fa-pen me-2"></i>Chỉnh sửa thông tin
+        </button>
+    </div>
+
+    <!-- RIGHT: STATS + ORDERS -->
+    <div class="right-col">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #8c7b6c;">💰</div>
+                <div class="stat-num"><?php echo number_format($totalSpent ?? 0, 0, ',', '.'); ?>đ</div>
+                <div class="stat-txt">Tổng chi tiêu</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #10b981;">📦</div>
+                <div class="stat-num"><?php echo $_orderCount; ?></div>
+                <div class="stat-txt">Đơn hàng</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #f59e0b;">✅</div>
+                <div class="stat-num"><?php echo $_confirmedOrders; ?></div>
+                <div class="stat-txt">Đã hoàn thành</div>
+            </div>
+        </div>
+
+        <!-- Tier Progress -->
+        <?php if (($nextThreshold ?? 0) > 0): ?>
+        <div class="tier-progress-card">
+            <div class="tier-progress-title">
+                <i class="fas <?php echo $icon; ?>" style="color: <?php echo $tierColor; ?>; margin-right: 6px;"></i>
+                Hạng <?php echo htmlspecialchars($tier); ?> → <?php echo htmlspecialchars($nextTier); ?>
+            </div>
+            <div class="tier-bar-bg">
+                <div class="tier-bar-fill" style="width: <?php echo min(100, $progress ?? 0); ?>%"></div>
+            </div>
+            <div class="tier-labels">
+                <span><?php echo number_format($totalSpent ?? 0, 0, ',', '.'); ?>đ</span>
+                <span>Cần thêm <strong><?php echo number_format(($nextThreshold ?? 0) - ($totalSpent ?? 0), 0, ',', '.'); ?>đ</strong></span>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="tier-progress-card" style="text-align: center; background: linear-gradient(135deg, <?php echo $tierColor; ?>11, <?php echo $tierColor; ?>22);">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏆</div>
+            <div style="font-weight: 700; color: <?php echo $tierColor; ?>; font-size: 1.1rem;">Chúc mừng! Bạn đã đạt hạng cao nhất!</div>
+        </div>
+        <?php endif; ?>
+
         <!-- Order History -->
-        <div class="orders-section">
-            <h3 class="orders-title"><i class="fas fa-history me-2" style="color: #94a3b8;"></i> Lịch Sử Mua Hàng</h3>
-            
+        <div class="orders-card">
+            <div class="orders-card-title"><i class="fas fa-history" style="color: #8c7b6c;"></i> Lịch Sử Mua Hàng</div>
+
             <?php if (empty($orders)): ?>
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-box-open mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
-                    <p style="font-size: 1.1rem;">Bạn chưa có đơn hàng nào.</p>
-                    <a href="/webbanhang/index.php" class="btn btn-dark mt-2 px-4 py-2" style="border-radius: 8px;">Khám phá sản phẩm ngay</a>
+                <div class="empty-orders">
+                    <i class="fas fa-box-open"></i>
+                    <p>Bạn chưa có đơn hàng nào.</p>
+                    <a href="/webbanhang/index.php?url=product" style="color: #8c7b6c; font-weight: 600; text-decoration: none;">Khám phá sản phẩm →</a>
                 </div>
             <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-muted" style="font-weight: 600;">Mã Đơn</th>
-                                <th class="text-muted" style="font-weight: 600;">Ngày Đặt</th>
-                                <th class="text-muted" style="font-weight: 600; min-width: 250px;">Sản Phẩm</th>
-                                <th class="text-muted" style="font-weight: 600;">Trạng Thái</th>
-                                <th class="text-end text-muted" style="font-weight: 600;">Thành Tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody id="profile-orders-tbody">
-                            <?php foreach ($orders as $order): ?>
-                            <tr class="profile-order-row">
-                                <td><span class="fw-bold text-primary">#<?php echo $order->id; ?></span></td>
-                                <td style="font-size: 0.9rem; color: #64748b;"><?php echo date('d/m/Y H:i', strtotime($order->created_at)); ?></td>
-                                <td>
-                                    <ul class="product-list">
-                                        <?php if (!empty($order->items)): ?>
-                                            <?php foreach ($order->items as $item): ?>
-                                                <li><?php echo htmlspecialchars($item->name); ?> (x<?php echo $item->quantity; ?>)</li>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <li><em class="text-muted">Gói hàng ẩn</em></li>
-                                        <?php endif; ?>
-                                    </ul>
-                                </td>
-                                <td>
-                                    <?php 
-                                        $st = $order->status ?? 'pending';
-                                        $statusClass = 'bg-warning text-dark';
-                                        $statusIcon = 'fa-clock';
-                                        $statusText = 'Chờ xử lý';
-                                        if ($st === 'confirmed' || $st == 1) { 
-                                            $statusClass = 'bg-success'; 
-                                            $statusText = 'Đã duyệt'; 
-                                            $statusIcon = 'fa-check-circle';
-                                        } elseif ($st === 'cancelled' || $st == 2) { 
-                                            $statusClass = 'bg-danger'; 
-                                            $statusText = 'Đã hủy'; 
-                                            $statusIcon = 'fa-times-circle';
-                                        }
-                                    ?>
-                                    <span class="badge rounded-pill <?php echo $statusClass; ?> label-status">
-                                        <i class="fas <?php echo $statusIcon; ?> me-1"></i><?php echo $statusText; ?>
-                                    </span>
-                                </td>
-                                <td class="text-end fw-bold text-dark">
-                                    <?php echo number_format($order->total_price, 0, ',', '.'); ?>đ
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <?php foreach ($orders as $order): 
+                    $st = $order->status ?? 'pending';
+                    $stClass = 'status-pending'; $stText = 'Chờ xử lý';
+                    if ($st === 'confirmed' || $st == 1) { $stClass = 'status-confirmed'; $stText = 'Đã duyệt'; }
+                    elseif ($st === 'cancelled' || $st == 2) { $stClass = 'status-cancelled'; $stText = 'Đã hủy'; }
+
+                    $itemNames = [];
+                    if (!empty($order->items)) {
+                        foreach ($order->items as $item) $itemNames[] = htmlspecialchars($item->name) . ' (x' . $item->quantity . ')';
+                    }
+                ?>
+                <div class="order-row">
+                    <div class="order-id">#<?php echo $order->id; ?></div>
+                    <div class="order-products">
+                        <span><?php echo !empty($itemNames) ? implode(', ', $itemNames) : '<em>Gói hàng ẩn</em>'; ?></span>
+                        <small style="color: #9ca3af;"><?php echo date('d/m/Y H:i', strtotime($order->created_at)); ?></small>
+                    </div>
+                    <div class="order-total"><?php echo number_format($order->total_price, 0, ',', '.'); ?>đ</div>
+                    <span class="order-status <?php echo $stClass; ?>"><?php echo $stText; ?></span>
                 </div>
-                <div id="profile-order-pagination"></div>
+                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const orderRows = Array.from(document.querySelectorAll('.profile-order-row'));
-    if (orderRows.length > 10) {
-        const rowsPerPage = 10;
-        let currentPage = 1;
-        const totalPages = Math.ceil(orderRows.length / rowsPerPage);
-
-        function renderOrderPage(page) {
-            currentPage = page;
-            orderRows.forEach((r, idx) => {
-                r.style.display = (idx >= (page - 1) * rowsPerPage && idx < page * rowsPerPage) ? '' : 'none';
-            });
-            document.getElementById('profile-page-display').innerHTML = `<b>${page}</b> / ${totalPages}`;
-        }
-
-        const controls = `
-            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                <span class="text-muted small" style="font-size: 0.95rem;">Trang <span id="profile-page-display">1</span></span>
-                <div>
-                    <button class="btn btn-sm btn-outline-secondary me-1 px-3" onclick="prevProfileOrderPage()"><i class="fas fa-chevron-left me-1"></i> Trước</button>
-                    <button class="btn btn-sm btn-outline-secondary px-3" onclick="nextProfileOrderPage()">Tiếp <i class="fas fa-chevron-right ms-1"></i></button>
-                </div>
+<!-- Edit Profile Modal -->
+<div class="edit-overlay" id="editOverlay" onclick="if(event.target===this) this.classList.remove('active')">
+    <div class="edit-modal">
+        <h3><i class="fas fa-user-edit me-2" style="color: #8c7b6c;"></i>Chỉnh sửa thông tin</h3>
+        <form id="editProfileForm">
+            <div class="form-group">
+                <label>Họ và tên</label>
+                <input type="text" name="fullname" value="<?php echo htmlspecialchars($user->fullname ?? ''); ?>">
             </div>
-        `;
-        document.getElementById('profile-order-pagination').innerHTML = controls;
-        renderOrderPage(1);
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="<?php echo htmlspecialchars($_email); ?>" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="text" name="phone" value="<?php echo htmlspecialchars($_phone); ?>" placeholder="0901 234 567">
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ</label>
+                <textarea name="address" rows="2" placeholder="Số nhà, đường, quận/huyện, thành phố"><?php echo htmlspecialchars($_address); ?></textarea>
+            </div>
+            <div class="edit-modal-actions">
+                <button type="button" class="btn-cancel-edit" onclick="document.getElementById('editOverlay').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-save-edit"><i class="fas fa-check me-1"></i>Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        window.prevProfileOrderPage = function() { if(currentPage > 1) renderOrderPage(currentPage - 1); };
-        window.nextProfileOrderPage = function() { if(currentPage < totalPages) renderOrderPage(currentPage + 1); };
-    }
+<script>
+$('#editProfileForm').on('submit', function(e) {
+    e.preventDefault();
+    const data = {
+        fullname: this.fullname.value,
+        email: this.email.value,
+        phone: this.phone.value,
+        address: this.address.value
+    };
+    $.post('/webbanhang/index.php?url=account/updateProfile', data, function(res) {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.message || 'Lỗi cập nhật!');
+        }
+    }, 'json').fail(function() { alert('Lỗi kết nối'); });
 });
 </script>
 

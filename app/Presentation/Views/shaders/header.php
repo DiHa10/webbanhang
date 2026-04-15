@@ -400,11 +400,8 @@ try {
         <li><a href="/webbanhang/index.php?url=product/add">Thêm Sản Phẩm</a></li>
         <li><a href="/webbanhang/index.php?url=admin/revenue">Quản Lý Doanh Thu</a></li>
         <li><a href="/webbanhang/index.php?url=admin/sliders">Quản Lý Slide</a></li>
-        <li>
-            <a href="/webbanhang/index.php?url=api/product" target="_blank" class="btn-api-pill" style="margin-left:4px;">
-                <i class="fas fa-cog"></i> Nút API
-            </a>
-        </li>
+        <li><a href="/webbanhang/index.php?url=admin/accounts">Quản Lý Tài Khoản</a></li>
+
         <?php endif; ?>
     </ul>
 

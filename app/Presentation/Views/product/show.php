@@ -73,7 +73,7 @@
 <div class="product-showoff-wrapper">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-custom">
-            <?php $baseRoute = (isset($apiMode) && $apiMode) ? '/webbanhang/index.php?url=api/product' : '/webbanhang/index.php?url=product'; ?>
+            <?php $baseRoute = '/webbanhang/index.php?url=product'; ?>
             <li class="breadcrumb-item"><a href="<?php echo $baseRoute; ?>">Trang chủ / Sản Phẩm</a></li>
             <li class="breadcrumb-item active"><?php echo htmlspecialchars($product->name); ?></li>
         </ol>

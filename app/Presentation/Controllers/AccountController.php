@@ -124,5 +124,28 @@ class AccountController {
 
         include_once __DIR__ . '/../Views/account/profile.php';
     }
+
+    public function updateProfile() {
+        header('Content-Type: application/json');
+        if (!isset($_SESSION['username'])) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+            return;
+        }
+
+        $username = $_SESSION['username'];
+        $fullname = trim($_POST['fullname'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->prepare("UPDATE account SET fullname = ?, email = ?, phone = ?, address = ? WHERE username = ?");
+            $stmt->execute([$fullname, $email, $phone, $address, $username]);
+            echo json_encode(['success' => true]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
 }
 ?>

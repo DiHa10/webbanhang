@@ -138,7 +138,7 @@
             <button type="submit" class="btn-submit" id="addBtn">Lưu Trữ Tác Phẩm <i class="fas fa-arrow-right ms-2"></i></button>
         </form>
 
-        <?php $baseRoute = isset($apiMode) && $apiMode ? '/webbanhang/api/product' : '/webbanhang/index.php?url=product'; ?>
+        <?php $baseRoute = '/webbanhang/index.php?url=product'; ?>
         <a href="<?php echo $baseRoute; ?>" class="btn-back"><i class="fas fa-arrow-left me-2"></i> Trở về danh sách</a>
     </div>
 </div>

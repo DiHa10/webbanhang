@@ -4,8 +4,10 @@ namespace App\Presentation\Controllers;
 use App\BLL\ProductService;
 use App\BLL\CategoryService;
 use App\BLL\OrderService;
+use App\DAL\Database;
 use App\Presentation\Middlewares\RoleMiddleware;
 use Exception;
+use PDO;
 
 class ProductController {
     private $productService;
@@ -107,6 +109,36 @@ class ProductController {
     }
 
     // ==========================================
+    // DISCOUNT HELPERS
+    // ==========================================
+
+    private function getDiscountByCode(string $code) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT code, discount_amount, is_percentage FROM discounts WHERE UPPER(code) = UPPER(?) AND status = 1 LIMIT 1");
+        $stmt->execute([$code]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function calculateAutoDiscount(float $amount): float {
+        if ($amount >= 20000000) {
+            return $amount * 0.10;
+        }
+        if ($amount >= 10000000) {
+            return $amount * 0.05;
+        }
+        return 0;
+    }
+
+    private function getCartTotal(): float {
+        $cart = $this->orderService->getCart();
+        $total = 0;
+        foreach ($cart as $item) {
+            $total += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
+        }
+        return $total;
+    }
+
+    // ==========================================
     // GIỎ HÀNG VÀ THANH TOÁN
     // ==========================================
 
@@ -185,8 +217,23 @@ class ProductController {
             $customer_email = $_POST['customer_email'] ?? '';
             $customer_phone = $_POST['customer_phone'] ?? '';
             $address = $_POST['address'] ?? '';
-            // Logic lấy mã giảm giá được chuyển giản lược cho demo
-            $discount_amount_sub = 0; 
+            $discount_code = trim($_POST['discount_code'] ?? '');
+
+            $discount_amount_sub = 0;
+            $cartTotal = $this->getCartTotal();
+            $discount_amount_sub += $this->calculateAutoDiscount($cartTotal);
+
+            if ($discount_code !== '') {
+                $discount = $this->getDiscountByCode($discount_code);
+                if (!$discount) {
+                    throw new Exception(" Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+                }
+                if ((int)$discount['is_percentage'] === 1) {
+                    $discount_amount_sub += $cartTotal * ((float)$discount['discount_amount'] / 100);
+                } else {
+                    $discount_amount_sub += (float)$discount['discount_amount'];
+                }
+            }
             
             try {
                 $order_id = $this->orderService->processCheckout($customer_name, $customer_email, $customer_phone, $address, $discount_amount_sub);
@@ -196,6 +243,30 @@ class ProductController {
                 echo "Lỗi khi đặt hàng: " . $e->getMessage();
             }
         }
+    }
+
+    public function applyDiscount() {
+        header('Content-Type: application/json');
+        $code = trim($_POST['code'] ?? '');
+        if ($code === '') {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng nhập mã giảm giá.']);
+            return;
+        }
+
+        $discount = $this->getDiscountByCode($code);
+        if (!$discount) {
+            echo json_encode(['success' => false, 'message' => 'Mã giảm giá không hợp lệ hoặc đã hết hạn.']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'discount' => [
+                'code'          => $discount['code'],
+                'amount'        => (float)$discount['discount_amount'],
+                'is_percentage' => (int)$discount['is_percentage']
+            ]
+        ]);
     }
 
     public function orderSuccess() {

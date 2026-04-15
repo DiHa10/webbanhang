@@ -1,5 +1,5 @@
 <?php
-$_baseUrl = (isset($apiMode) && $apiMode) ? 'api/product' : 'product';
+$_baseUrl = 'product';
 include_once __DIR__ . '/../shaders/header.php';
 ?>
 
@@ -238,6 +238,26 @@ include_once __DIR__ . '/../shaders/header.php';
     .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; color: #9ca3af; background: #fff; border-radius: 20px; }
     .empty-state i { font-size: 4rem; margin-bottom: 1.5rem; color: #d1d5db; }
     .empty-state h3 { font-family: 'Lora', serif; color: #4b5563; }
+
+    /* Sold count - Shopee style */
+    .prod-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .prod-sold {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .prod-sold i { font-size: 0.7rem; color: #f59e0b; }
+    .prod-sold .sold-count {
+        font-weight: 600;
+        color: #6b7280;
+    }
 </style>
 
 <?php
@@ -324,7 +344,17 @@ if ($_catId && !empty($categories)) {
                         <div class="prod-body">
                             <a href="/webbanhang/index.php?url=<?php echo $_baseUrl; ?>/show/<?php echo $product->id; ?>" style="text-decoration:none;"><div class="prod-name"><?php echo htmlspecialchars($product->name); ?></div></a>
                             <div class="prod-desc"><?php echo htmlspecialchars($product->description ?? ''); ?></div>
-                            <div class="prod-price"><?php echo $priceFormatted; ?></div>
+                            <div class="prod-footer">
+                                <div class="prod-price"><?php echo $priceFormatted; ?></div>
+                                <div class="prod-sold">
+                                    <i class="fas fa-fire"></i>
+                                    Đã bán <span class="sold-count"><?php 
+                                        $sold = intval($product->sold_count ?? 0);
+                                        if ($sold >= 1000) echo number_format($sold/1000, 1, ',', '.') . 'k';
+                                        else echo $sold;
+                                    ?></span>
+                                </div>
+                            </div>
                             <a href="javascript:void(0);" onclick="addToCartGlobal(<?php echo $product->id; ?>, this)" class="btn-add-cart">
                                 <i class="fas fa-shopping-cart" style="margin-right:6px;"></i> Thêm Vào Giỏ
                             </a>
@@ -344,14 +374,8 @@ if ($_catId && !empty($categories)) {
 
 <script>
 function confirmDelete(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa tác phẩm này? Mọi dữ liệu sẽ bị mất.')) return;
-    fetch('/webbanhang/api/product/' + id, { method: 'DELETE' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.message === 'Product deleted successfully') location.reload();
-            else alert('Xóa thất bại: ' + (data.message || ''));
-        })
-        .catch(() => alert('Lỗi kết nối đến máy chủ.'));
+    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này? Mọi dữ liệu sẽ bị mất.')) return;
+    window.location.href = '/webbanhang/index.php?url=product/delete/' + id;
 }
 </script>
 

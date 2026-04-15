@@ -419,15 +419,15 @@
                     </div>
                     <div class="form-group mb-3">
                         <label class="small font-weight-bold text-muted text-uppercase">Loại Giảm</label>
-                        <select id="discount_is_percentage" class="form-control">
+                        <select id="discount_is_percentage" class="form-control" style="font-size: 0.95rem; color: #1a1a1a; height: auto; padding: 0.6rem 0.75rem;">
                             <option value="0">Giảm tiền trực tiếp (VNĐ)</option>
                             <option value="1">Giảm theo phần trăm (%)</option>
                         </select>
                     </div>
                     <div class="form-group mb-0">
                         <label class="small font-weight-bold text-muted text-uppercase">Áp dụng cho Sản Phẩm</label>
-                        <select id="discount_product_id" class="form-control">
-                            <option value="">-- Toàn bộ hệ thống --</option>
+                        <select id="discount_product_id" class="form-control" style="font-size: 0.95rem; color: #1a1a1a; height: auto; padding: 0.6rem 0.75rem;">
+                            <option value="">Toàn bộ hệ thống</option>
                         </select>
                     </div>
                 </div>
@@ -512,7 +512,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ==== DISCOUNT LOGIC ====
     if (typeof $ !== 'undefined') {
-        $.getJSON('/webbanhang/api/product', function(data) {
+        $.getJSON('/webbanhang/index.php?url=admin/listProducts', function(data) {
             const productSelect = $('#discount_product_id');
             $.each(data, function(index, product) {
                 productSelect.append($('<option></option>').val(product.id).text(product.name));
@@ -522,7 +522,7 @@ document.addEventListener("DOMContentLoaded", function() {
         loadDiscounts();
 
         function loadDiscounts() {
-            $.getJSON('/webbanhang/api/discount', function(data) {
+            $.getJSON('/webbanhang/index.php?url=admin/listDiscounts', function(data) {
                 const tbody = $('#discountTable tbody');
                 tbody.empty();
                 if (data.length === 0) {
@@ -561,7 +561,7 @@ document.addEventListener("DOMContentLoaded", function() {
         window.deleteDiscount = function(id) {
             if(confirm('Xóa mã giảm giá này?')) {
                 $.ajax({
-                    url: '/webbanhang/api/discount/' + id,
+                    url: '/webbanhang/index.php?url=admin/deleteDiscount/' + id,
                     type: 'DELETE',
                     success: function(res) {
                         if(res.success) loadDiscounts();
@@ -580,7 +580,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 product_id: $('#discount_product_id').val()
             };
             $.ajax({
-                url: '/webbanhang/api/discount',
+                url: '/webbanhang/index.php?url=admin/addDiscount',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(codeData),

@@ -204,7 +204,7 @@ $(document).ready(function() {
         $.each(sliceData, function(index, product) {
             const imgUrl = product.image ? `/webbanhang/${product.image}` : 'https://via.placeholder.com/300x250/f8fafc/64748b?text=No+Image';
             const priceFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price);
-            const baseRoute = "<?php echo isset($apiMode) && $apiMode ? '/webbanhang/api/product' : '/webbanhang/Product'; ?>";
+            const baseRoute = "/webbanhang/index.php?url=product";
 
             const productItem = `
                 <div class="col-md-4 col-sm-6 col-lg-3 d-flex">

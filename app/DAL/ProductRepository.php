@@ -12,14 +12,17 @@ class ProductRepository {
     }
 
     public function getAll($category_id = null, $keyword = '') {
-        $query = "SELECT * FROM product WHERE 1=1";
+        $query = "SELECT p.*, c.name AS category_name, COALESCE((SELECT SUM(quantity) FROM order_details od WHERE od.product_id = p.id), 0) AS sold_count"
+               . " FROM product p"
+               . " LEFT JOIN category c ON p.category_id = c.id"
+               . " WHERE 1=1";
         
         if ($category_id) {
-            $query .= " AND category_id = :category_id";
+            $query .= " AND p.category_id = :category_id";
         }
         
         if (!empty($keyword)) {
-            $query .= " AND name LIKE :keyword";
+            $query .= " AND p.name LIKE :keyword";
         }
         
         $stmt = $this->conn->prepare($query);

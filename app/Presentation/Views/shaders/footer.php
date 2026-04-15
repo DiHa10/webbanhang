@@ -71,22 +71,19 @@
                             <li><i class="fas fa-check me-2" style="font-size: 0.7rem;"></i> Giao hàng và lắp ráp tận nơi</li>
                         </ul>
                         
-                        <div class="mt-3">
-                            <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-dark border-bottom border-dark pb-1 me-3">Về chúng tôi</a>
-                            <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-dark border-bottom border-dark pb-1">Câu hỏi thường gặp</a>
-                        </div>
+                        
                     </div>
                 </div>
 
                 <div class="col-md-4 px-md-5">
                     <h6 class="fw-bold text-uppercase mb-4" style="font-size: 0.9rem; letter-spacing: 0.5px;">LIÊN HỆ & HỖ TRỢ</h6>
                     <ul class="list-unstyled small lh-lg">
-                        <li class="mb-2">Tư vấn mua hàng: <a href="tel:0904135321" class="text-decoration-none text-dark fw-medium border-bottom">0904.135.321</a></li>
-                        <li class="mb-2">Bảo hành & Đổi trả: <a href="tel:0899454393" class="text-decoration-none text-dark fw-medium border-bottom">0899.454.393</a></li>
-                        <li class="mb-2">Tổng đài: <span class="fw-medium">0969179244</span></li>
-                        <li class="mb-2">Zalo: <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-dark fw-medium border-bottom">0904.135.321</a></li>
+                        <li class="mb-2">Tư vấn mua hàng: <a href="tel:0904135321" class="text-decoration-none text-dark fw-medium border-bottom"></a></li>
+                        <li class="mb-2">Bảo hành & Đổi trả: <a href="tel:0899454393" class="text-decoration-none text-dark fw-medium border-bottom"></a></li>
+                        <li class="mb-2">Tổng đài: <span class="fw-medium"></span></li>
+                        <li class="mb-2">Zalo: <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-dark fw-medium border-bottom"></a></li>
                         <li class="mt-3">
-                            <strong>Showroom:</strong> 59 Xa Lộ Hà Nội TPHCM <br>
+                            <strong>Showroom:</strong>  <br>
                             <span class="text-secondary">Mở cửa: 8:30 – 20:00 hàng ngày</span>
                         </li>
                     </ul>
@@ -95,13 +92,13 @@
                 <div class="col-md-4">
                     <h6 class="fw-bold text-uppercase mb-4" style="font-size: 0.9rem; letter-spacing: 0.5px;">CÁC CHÍNH SÁCH</h6>
                     <ul class="list-unstyled small lh-lg">
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Khảo sát & tư vấn thiết kế miễn phí</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Chính sách bảo hành gỗ 5 năm</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Trả góp 0% cho hóa đơn từ 10tr</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Giao hàng toàn quốc – nhanh, gọn</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Chính sách đổi trả</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Chính sách bảo mật</a></li>
-                        <li><a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-decoration-none text-secondary">Điều khoản dịch vụ</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Khảo sát & tư vấn thiết kế miễn phí</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Chính sách bảo hành gỗ 5 năm</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Trả góp 0% cho hóa đơn từ 10tr</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Giao hàng toàn quốc – nhanh, gọn</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Chính sách đổi trả</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Chính sách bảo mật</a></li>
+                        <li><a href="javascript:alert('Tính năng đang phát triển!');" class="text-decoration-none text-secondary">Điều khoản dịch vụ</a></li>
                     </ul>
                 </div>
             </div>
@@ -109,14 +106,13 @@
             <div class="row mt-5 pt-4 border-top align-items-center">
                 <div class="col-md-6">
                     <div class="d-flex gap-4 fs-5 mb-3 mb-md-0">
-                        <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-dark opacity-75"><i class="fab fa-facebook-f"></i></a>
-                        <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-dark opacity-75"><i class="fab fa-instagram"></i></a>
-                        <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-dark opacity-75"><i class="fab fa-youtube"></i></a>
-                        <a href="javascript:alert('T�nh nang dang ph�t tri?n!');" class="text-dark opacity-75"><i class="fab fa-tiktok"></i></a>
+                        <a href="javascript:alert('Tính năng đang phát triển!');" class="text-dark opacity-75"><i class="fab fa-facebook-f"></i></a>
+                        <a href="javascript:alert('Tính năng đang phát triển!');" class="text-dark opacity-75"><i class="fab fa-instagram"></i></a>
+                        <a href="javascript:alert('Tính năng đang phát triển!');" class="text-dark opacity-75"><i class="fab fa-youtube"></i></a>
+                        <a href="javascript:alert('Tính năng đang phát triển!');" class="text-dark opacity-75"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_bo_cong_thuong.png/640px-Logo_bo_cong_thuong.png" alt="Bộ Công Thương" style="height: 40px;">
                 </div>
             </div>
         </div>
