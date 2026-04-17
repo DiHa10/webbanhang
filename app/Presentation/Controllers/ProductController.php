@@ -41,6 +41,38 @@ class ProductController {
         else echo "Không thấy sản phẩm.";
     }
 
+    public function ranking() {
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->query("
+                SELECT p.id, p.name, p.price, p.image, c.name as category_name, SUM(od.quantity) as total_sold
+                FROM product p
+                LEFT JOIN category c ON p.category_id = c.id
+                JOIN order_details od ON p.id = od.product_id
+                JOIN orders o ON od.order_id = o.id
+                WHERE MONTH(o.created_at) = MONTH(CURRENT_DATE()) 
+                  AND YEAR(o.created_at) = YEAR(CURRENT_DATE()) 
+                  AND o.status != 'cancelled' 
+                GROUP BY p.id
+                ORDER BY total_sold DESC
+            ");
+            $rankedProducts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Group by category
+            $categorizedRankings = [];
+            foreach ($rankedProducts as $p) {
+                $catName = empty($p['category_name']) ? 'Khác' : $p['category_name'];
+                if (!isset($categorizedRankings[$catName])) {
+                    $categorizedRankings[$catName] = [];
+                }
+                $categorizedRankings[$catName][] = $p;
+            }
+        } catch (\Exception $e) {
+            $categorizedRankings = [];
+        }
+        include __DIR__ . '/../Views/product/ranking.php';
+    }
+
     public function add() {
         // Chỉ admin hoặc employee mới được thêm
         RoleMiddleware::requireRole(['admin', 'employee']);
@@ -169,6 +201,11 @@ class ProductController {
             $total_items = array_sum(array_column($cart, 'quantity'));
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'total_items' => $total_items]);
+            exit;
+        }
+
+        if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'buy_now') {
+            header('Location: /webbanhang/index.php?url=product/cart');
             exit;
         }
 

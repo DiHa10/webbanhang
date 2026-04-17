@@ -115,8 +115,11 @@
                 </div>
 
                 <div class="show-action-row">
-                    <button type="submit" class="btn-buy">
-                        Thêm Vào Giỏ Hàng <i class="fas fa-arrow-right"></i>
+                    <button type="submit" name="action" value="add" class="btn-buy" style="background:#fff; color:#1a1a1a; border: 1px solid #1a1a1a;">
+                        <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ Hàng
+                    </button>
+                    <button type="submit" name="action" value="buy_now" class="btn-buy">
+                        Mua Ngay <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </form>

@@ -254,16 +254,28 @@ $('#contact-form').on('submit', function(e) {
     e.preventDefault();
     const btn = $('#sendBtn');
     const origHtml = btn.html();
-
     btn.html('<i class="fas fa-spinner fa-spin"></i> Đang gửi...').css('pointer-events', 'none');
 
-    setTimeout(function() {
-        btn.html('<i class="fas fa-check"></i> Đã gửi thành công!').css('background', '#10b981');
-        $('#contact-form')[0].reset();
-
-        setTimeout(function() {
-            btn.html(origHtml).css({'background': '#8c7b6c', 'pointer-events': 'auto'});
-        }, 3000);
-    }, 1500);
+    $.post('/webbanhang/index.php?url=home/saveContact', {
+        name: $('#ct_name').val(),
+        phone: $('#ct_phone').val(),
+        email: $('#ct_email').val(),
+        subject: $('#ct_subject').val(),
+        message: $('#ct_message').val()
+    }, function(res) {
+        if (res.success) {
+            btn.html('<i class="fas fa-check"></i> Đã gửi thành công!').css('background', '#10b981');
+            $('#contact-form')[0].reset();
+            setTimeout(function() {
+                btn.html(origHtml).css({'background': '#8c7b6c', 'pointer-events': 'auto'});
+            }, 3000);
+        } else {
+            alert(res.message || 'Lỗi gửi!');
+            btn.html(origHtml).css('pointer-events', 'auto');
+        }
+    }, 'json').fail(function() {
+        alert('Lỗi kết nối!');
+        btn.html(origHtml).css('pointer-events', 'auto');
+    });
 });
 </script>

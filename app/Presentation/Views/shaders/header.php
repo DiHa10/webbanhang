@@ -374,34 +374,23 @@ try {
         <li>
             <a href="/webbanhang/index.php?url=product" id="nav-link-product">Danh Sách Sản Phẩm</a>
         </li>
-        <li class="nav-dropdown mega-dropdown">
-            <span class="nav-dropdown-toggle">Danh Mục Nổi Bật <i class="fas fa-chevron-down" style="font-size:0.55rem;"></i></span>
-            <div class="nav-dropdown-menu" id="nav-category-list">
-                <div class="mega-grid">
-                    <?php if (!empty($_megaCats)): foreach ($_megaCats as $mc): ?>
-                    <div class="mega-column">
-                        <div class="mega-title"><a href="/webbanhang/index.php?url=product&category_id=<?php echo $mc->id; ?>"><?php echo htmlspecialchars($mc->name); ?></a></div>
-                        <ul class="mega-list">
-                            <?php if(!empty($mc->products)): foreach($mc->products as $mp): ?>
-                            <li><a href="/webbanhang/index.php?url=product/show/<?php echo $mp->id; ?>"><?php echo htmlspecialchars($mp->name); ?></a></li>
-                            <?php endforeach; else: ?>
-                            <li><span style="color:#aaa; font-style:italic; font-size:0.9rem;">Chưa có sản phẩm</span></li>
-                            <?php endif; ?>
-                            <li class="mega-view-all"><a href="/webbanhang/index.php?url=product&category_id=<?php echo $mc->id; ?>">Xem tất cả <i class="fas fa-arrow-right" style="margin-left:5px; font-size:0.8em;"></i></a></li>
-                        </ul>
-                    </div>
-                    <?php endforeach; endif; ?>
-                </div>
-            </div>
-        </li>
+        <li><a href="/webbanhang/index.php?url=product/ranking">Top Sản Phẩm Bán Chạy</a></li>
         <li><a href="/webbanhang/index.php?url=blog">Blog</a></li>
+        <?php $_isStaff = isset($_SESSION['role']) && $_SESSION['role'] === 'staff'; ?>
+        <?php if (!$_isStaff && !$_isAdmin): ?>
         <li><a href="/webbanhang/index.php?url=home/contact">Liên Hệ</a></li>
+        <?php endif; ?>
+        <?php if ($_isStaff): ?>
+        <li><a href="/webbanhang/index.php?url=admin/warehouse">Quản Lý Kho</a></li>
+        <li><a href="/webbanhang/index.php?url=admin/contacts">Trả Lời Liên Hệ</a></li>
+        <?php endif; ?>
         <?php if ($_isAdmin): ?>
         <li><a href="/webbanhang/index.php?url=product/add">Thêm Sản Phẩm</a></li>
         <li><a href="/webbanhang/index.php?url=admin/revenue">Quản Lý Doanh Thu</a></li>
         <li><a href="/webbanhang/index.php?url=admin/sliders">Quản Lý Slide</a></li>
         <li><a href="/webbanhang/index.php?url=admin/accounts">Quản Lý Tài Khoản</a></li>
-
+        <li><a href="/webbanhang/index.php?url=admin/warehouse">Quản Lý Kho</a></li>
+        <li><a href="/webbanhang/index.php?url=admin/contacts">Trả Lời Liên Hệ</a></li>
         <?php endif; ?>
     </ul>
 
@@ -508,7 +497,15 @@ $(document).ready(function() {
     });
 
     // Update cart badge from session via API or page-load
-    var cartCount = <?php echo isset($_SESSION['cart']) ? array_sum(array_column($_SESSION['cart'], 'quantity')) : 0; ?>;
+    var cartCount = <?php 
+        $cartCount = 0;
+        if (!empty($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $cartCount += (int)($item['quantity'] ?? 0);
+            }
+        }
+        echo $cartCount;
+    ?>;
     if (cartCount > 0) {
         $('#cart-badge').text(cartCount).show();
     } else {

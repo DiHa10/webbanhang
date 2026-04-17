@@ -86,8 +86,21 @@ include __DIR__ . '/../shaders/header.php';
     .empty-cart i { font-size: 4rem; color: #e5e7eb; margin-bottom: 1.5rem; }
     .empty-cart h3 { font-family: 'Lora', serif; color: #1a1a1a; margin-bottom: 0.5rem; }
     .empty-cart p { color: #6b7280; margin-bottom: 2rem; }
-    .btn-continue { display: inline-block; background: #8c7b6c; color: #fff; padding: 0.85rem 2rem; border-radius: 30px; font-weight: 600; text-decoration: none; transition: 0.3s; }
-    .btn-continue:hover { background: #6b5c50; color: #fff; transform: translateY(-2px); }
+    .btn-continue {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #8c7b6c;
+        color: #fff;
+        padding: 0.9rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .btn-continue:hover { background: #6b5c50; color: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(140,123,108,0.3); }
 
     @media (max-width: 992px) {
         .cart-item-card { flex-wrap: wrap; gap: 1rem; }
@@ -99,7 +112,7 @@ include __DIR__ . '/../shaders/header.php';
     <div class="cart-header">
         <h1 class="cart-title">Giỏ Hàng</h1>
         <?php if (!empty($cart)): ?>
-            <span class="cart-count"><?php echo array_sum(array_column($cart, 'quantity')); ?> sản phẩm · Miễn phí vận chuyển toàn quốc</span>
+            <span class="cart-count"><?php $c=0; foreach($cart as $i) $c+=(int)$i['quantity']; echo $c; ?> sản phẩm · Miễn phí vận chuyển toàn quốc</span>
         <?php endif; ?>
     </div>
 
@@ -108,7 +121,7 @@ include __DIR__ . '/../shaders/header.php';
             <i class="fas fa-shopping-bag"></i>
             <h3>Giỏ hàng trống</h3>
             <p>Hãy khám phá bộ sưu tập và tìm cho mình những tác phẩm yêu thích.</p>
-            <a href="/webbanhang/index.php?url=product" class="btn-continue"><i class="fas fa-arrow-left me-2"></i> Tiếp tục mua sắm</a>
+            <a href="/webbanhang/index.php?url=product" class="btn-continue"><i class="fas fa-arrow-left"></i> Tiếp tục mua sắm</a>
         </div>
     <?php else: ?>
         <div class="row g-4">

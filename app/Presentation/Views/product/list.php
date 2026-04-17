@@ -208,6 +208,29 @@ include_once __DIR__ . '/../shaders/header.php';
     }
     .btn-add-cart:hover { background: #8c7b6c; color: #fff; border-color: #8c7b6c; }
 
+    .prod-btns {
+        display: flex;
+        gap: 8px;
+    }
+    .prod-btns .btn-add-cart { flex: 1; }
+    .btn-buy-now {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 0.75rem 0.5rem;
+        background: #1a1a1a;
+        color: #fff;
+        border: 1px solid #1a1a1a;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-buy-now:hover { background: #ef4444; border-color: #ef4444; color: #fff; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239,68,68,0.3); }
+
     .admin-actions {
         position: absolute;
         top: 12px;
@@ -355,9 +378,14 @@ if ($_catId && !empty($categories)) {
                                     ?></span>
                                 </div>
                             </div>
-                            <a href="javascript:void(0);" onclick="addToCartGlobal(<?php echo $product->id; ?>, this)" class="btn-add-cart">
-                                <i class="fas fa-shopping-cart" style="margin-right:6px;"></i> Thêm Vào Giỏ
-                            </a>
+                            <div class="prod-btns">
+                                <a href="javascript:void(0);" onclick="addToCartGlobal(<?php echo $product->id; ?>, this)" class="btn-add-cart">
+                                    <i class="fas fa-shopping-cart" style="margin-right:5px;"></i> Thêm Giỏ
+                                </a>
+                                <a href="javascript:void(0);" onclick="buyNow(<?php echo $product->id; ?>)" class="btn-buy-now">
+                                    <i class="fas fa-bolt" style="margin-right:5px;"></i> Mua Ngay
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -376,6 +404,35 @@ if ($_catId && !empty($categories)) {
 function confirmDelete(id) {
     if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này? Mọi dữ liệu sẽ bị mất.')) return;
     window.location.href = '/webbanhang/index.php?url=product/delete/' + id;
+}
+
+function buyNow(productId) {
+    var btn = event.currentTarget;
+    $(btn).css('pointer-events','none').html('<i class="fas fa-spinner fa-spin" style="margin-right:5px;"></i> Đang xử lý...');
+    
+    fetch('/webbanhang/index.php?url=product/addToCart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'id=' + productId + '&quantity=1'
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            // Cập nhật badge giỏ hàng
+            var badge = $('#cart-badge');
+            badge.text(data.total_items).show();
+            $(btn).html('<i class="fas fa-check" style="margin-right:5px;"></i> Đang chuyển...').css({'background':'#10b981','border-color':'#10b981'});
+            setTimeout(function() {
+                window.location.href = '/webbanhang/index.php?url=product/checkout';
+            }, 400);
+        } else {
+            alert(data.message || 'Có lỗi xảy ra!');
+            $(btn).css('pointer-events','auto').html('<i class="fas fa-bolt" style="margin-right:5px;"></i> Mua Ngay');
+        }
+    }).catch(() => {
+        window.location.href = '/webbanhang/index.php?url=product/checkout';
+    });
 }
 </script>
 

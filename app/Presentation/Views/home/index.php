@@ -23,14 +23,32 @@
     .section-title { font-family: 'Lora', serif; font-size: 2.25rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
     .section-subtitle { font-size: 0.9rem; color: #8c7b6c; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
 
-    /* ===== CATEGORIES ===== */
-    .home-cat-card {
-        background: #fff; padding: 2.5rem 1.5rem; text-align: center; border-radius: 20px; transition: all 0.4s ease; cursor: pointer; border: 1px solid transparent; text-decoration: none; display: block;
+    /* ===== TOP RANKING ===== */
+    .rank-card {
+        background: #fff; border-radius: 20px; overflow: hidden; position: relative;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); transition: all 0.4s ease;
+        display: flex; flex-direction: column; text-decoration: none; border: 1px solid transparent;
+        height: 100%;
     }
-    .home-cat-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.06); border-color: #eae5de; }
-    .home-cat-icon { width: 70px; height: 70px; background: #faf9f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #8c7b6c; transition: all 0.4s; }
-    .home-cat-card:hover .home-cat-icon { background: #8c7b6c; color: #fff; transform: scale(1.1); }
-    .home-cat-name { font-family: 'Lora', serif; font-size: 1.15rem; color: #1a1a1a; font-weight: 600; margin: 0; }
+    .rank-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); border-color: #eae5de; }
+    .rank-badge {
+        position: absolute; top: -10px; left: 15px; width: 45px; height: 55px;
+        background: #8c7b6c; color: #fff; font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center; z-index: 10;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+        box-shadow: 0 5px 15px rgba(140, 123, 108, 0.4);
+    }
+    .rank-badge.rank-1 { background: #fbbf24; color: #78350f; box-shadow: 0 5px 15px rgba(251, 191, 36, 0.4); }
+    .rank-badge.rank-2 { background: #94a3b8; color: #1e293b; box-shadow: 0 5px 15px rgba(148, 163, 184, 0.4); }
+    .rank-badge.rank-3 { background: #cd7f32; color: #fff; box-shadow: 0 5px 15px rgba(205, 127, 50, 0.4); }
+    
+    .rank-img-wrap { position: relative; height: 220px; overflow: hidden; background: #faf9f8; }
+    .rank-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .rank-card:hover .rank-img-wrap img { transform: scale(1.05); }
+    
+    .rank-body { padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; }
+    .rank-name { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rank-sold { margin-top: auto; font-size: 0.9rem; color: #d97706; font-weight: 600; background: #fef3c7; padding: 5px 12px; border-radius: 20px; display: inline-block; align-self: center; }
 
     /* ===== STORY (INTERVIEW) ===== */
     .story-section { padding: 6rem 0; background: #fff; }
@@ -107,13 +125,13 @@
     </div>
 </div>
 
-<!-- CATEGORY SECTION -->
+<!-- RANKING SECTION -->
 <div class="container" style="padding-top: 6rem; padding-bottom: 2rem;">
     <div class="section-title-wrap">
-        <div class="section-subtitle">Dành riêng cho bạn</div>
-        <h2 class="section-title">Danh Mục Nổi Bật</h2>
+        <div class="section-subtitle">Được yêu thích nhất</div>
+        <h2 class="section-title">Bảng Xếp Hạng Bán Chạy Trong Tháng</h2>
     </div>
-    <div class="row g-4 justify-content-center" id="home-category-list">
+    <div class="row justify-content-center" id="home-ranking-list">
         <!-- Tải render qua JS -->
     </div>
 </div>
@@ -167,30 +185,38 @@
 
 <script>
 $(document).ready(function() {
-    var initialCategories = <?php echo isset($categoriesJson) ? $categoriesJson : '[]'; ?>;
-    var initialProducts = <?php echo isset($productsJson) ? $productsJson : '[]'; ?>;
+    var topProducts = <?php echo isset($topProductsJson) ? $topProductsJson : '[]'; ?>;
 
-    loadHomeCategories();
+    loadHomeRankings();
     loadHomeProducts();
 
-    function loadHomeCategories() {
-        const cats = initialCategories;
-        if(!cats || !cats.length) return;
-        const list = $('#home-category-list');
+    function loadHomeRankings() {
+        if(!topProducts || !topProducts.length) return;
+        const list = $('#home-ranking-list');
         list.empty();
-        const icons = ['fa-couch', 'fa-bed', 'fa-chair', 'fa-door-open', 'fa-table', 'fa-lamp'];
-        $.each(cats.slice(0, 6), function(index, c) {
-            const icon = icons[index % icons.length];
-            const item = `
-                <div class="col-6 col-md-4 col-lg-2">
-                    <a href="/webbanhang/index.php?url=product&category_id=${c.id}" class="home-cat-card">
-                        <div class="home-cat-icon"><i class="fas ${icon} fa-2x"></i></div>
-                        <h5 class="home-cat-name">${c.name}</h5>
+        
+        let html = '';
+        $.each(topProducts.slice(0, 4), function(index, p) {
+            const rank = index + 1;
+            const rankClass = rank <= 3 ? 'rank-' + rank : '';
+            const imgUrl = p.image ? `/webbanhang/${p.image}` : 'https://via.placeholder.com/300x250/f8fafc/64748b?text=No+Image';
+            
+            html += `
+                <div class="col-6 col-md-3 mb-4 d-flex">
+                    <a href="/webbanhang/index.php?url=product/show/${p.id}" class="rank-card w-100">
+                        <div class="rank-badge ${rankClass}">#${rank}</div>
+                        <div class="rank-img-wrap">
+                            <img src="${imgUrl}" alt="${p.name}">
+                        </div>
+                        <div class="rank-body">
+                            <div class="rank-name">${p.name}</div>
+                            <div class="rank-sold"><i class="fas fa-fire me-1"></i>Đã bán ${p.total_sold}</div>
+                        </div>
                     </a>
                 </div>
             `;
-            list.append(item);
         });
+        list.html(html);
     }
 
     function loadHomeProducts() {

@@ -11,13 +11,14 @@ class AdminController {
     private $sliderService;
 
     public function __construct() {
-        RoleMiddleware::requireRole(['admin']);
+        RoleMiddleware::requireRole(['admin', 'staff']);
         $this->adminService = new AdminService();
         $this->sliderService = new SliderService();
         $this->adminService->verifyAndCreateTables();
     }
 
     public function revenue() {
+        RoleMiddleware::requireRole(['admin']);
         try {
             $data = $this->adminService->getDashboardRevenue();
             extract($data);
@@ -55,6 +56,7 @@ class AdminController {
     }
 
     public function updateOrderStatus() {
+        RoleMiddleware::requireRole(['admin']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? null;
             $statusCode = $_POST['status'] ?? null;
@@ -73,11 +75,13 @@ class AdminController {
     }
 
     public function sliders() {
+        RoleMiddleware::requireRole(['admin']);
         $sliders = $this->sliderService->getSliders();
         include __DIR__ . '/../Views/admin/sliders.php';
     }
 
     public function addSlider() {
+        RoleMiddleware::requireRole(['admin']);
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $title = $_POST['title'] ?? '';
             $subtitle = $_POST['subtitle'] ?? '';
@@ -107,6 +111,7 @@ class AdminController {
     // ==========================================
 
     public function listDiscounts() {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         try {
             $db = \App\DAL\Database::getInstance();
@@ -124,6 +129,7 @@ class AdminController {
     }
 
     public function addDiscount() {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid method']);
@@ -159,6 +165,7 @@ class AdminController {
     }
 
     public function deleteDiscount($id) {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         try {
             $db = \App\DAL\Database::getInstance();
@@ -187,10 +194,12 @@ class AdminController {
     // ==========================================
 
     public function accounts() {
+        RoleMiddleware::requireRole(['admin']);
         include __DIR__ . '/../Views/admin/accounts.php';
     }
 
     public function listAccounts() {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         try {
             $db = \App\DAL\Database::getInstance();
@@ -211,6 +220,7 @@ class AdminController {
     }
 
     public function updateRole() {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid method']);
@@ -251,6 +261,7 @@ class AdminController {
     }
 
     public function deleteAccount($id = null) {
+        RoleMiddleware::requireRole(['admin']);
         header('Content-Type: application/json');
         if (!$id) {
             $data = json_decode(file_get_contents("php://input"), true);
@@ -274,6 +285,112 @@ class AdminController {
             }
 
             $stmt = $db->prepare("DELETE FROM account WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    // ==========================================
+    // WAREHOUSE (KHO HÀNG)
+    // ==========================================
+
+    public function warehouse() {
+        include __DIR__ . '/../Views/admin/warehouse.php';
+    }
+
+    public function listWarehouse() {
+        header('Content-Type: application/json');
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->query("
+                SELECT p.id, p.name, p.price, p.stock, p.image, c.name as category_name,
+                    COALESCE((SELECT SUM(od.quantity) FROM order_details od WHERE od.product_id = p.id), 0) as total_sold
+                FROM product p
+                LEFT JOIN category c ON p.category_id = c.id
+                ORDER BY p.id ASC
+            ");
+            echo json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
+        } catch (Exception $e) {
+            echo json_encode([]);
+        }
+    }
+
+    public function setStock() {
+        header('Content-Type: application/json');
+        $data = json_decode(file_get_contents("php://input"), true);
+        if (!$data) $data = $_POST;
+
+        $id = intval($data['id'] ?? 0);
+        $stock = intval($data['stock'] ?? 0);
+
+        if (!$id || $stock < 0) {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
+            return;
+        }
+
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->prepare("UPDATE product SET stock = ? WHERE id = ?");
+            $stmt->execute([$stock, $id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    // ==========================================
+    // CONTACTS (LIÊN HỆ)
+    // ==========================================
+
+    public function contacts() {
+        include __DIR__ . '/../Views/admin/contacts.php';
+    }
+
+    public function listContacts() {
+        header('Content-Type: application/json');
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->query("SELECT * FROM contacts ORDER BY created_at DESC");
+            echo json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
+        } catch (Exception $e) {
+            echo json_encode([]);
+        }
+    }
+
+    public function replyContact() {
+        header('Content-Type: application/json');
+        $data = json_decode(file_get_contents("php://input"), true);
+        if (!$data) $data = $_POST;
+
+        $id = intval($data['id'] ?? 0);
+        $reply = trim($data['reply'] ?? '');
+        $repliedBy = $_SESSION['username'] ?? 'staff';
+
+        if (!$id || empty($reply)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng nhập nội dung trả lời']);
+            return;
+        }
+
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->prepare("UPDATE contacts SET reply = ?, replied_by = ?, replied_at = NOW(), status = 'replied' WHERE id = ?");
+            $stmt->execute([$reply, $repliedBy, $id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function deleteContact() {
+        header('Content-Type: application/json');
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = intval($data['id'] ?? 0);
+
+        try {
+            $db = \App\DAL\Database::getInstance();
+            $stmt = $db->prepare("DELETE FROM contacts WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
