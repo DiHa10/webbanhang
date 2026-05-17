@@ -1,4 +1,4 @@
-﻿<style>
+<style>
 .sponsor-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -127,6 +127,218 @@
     <button id="scrollToTopBtn" class="btn btn-dark shadow-lg" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 999; border-radius: 50%; width: 50px; height: 50px; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2);">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <!-- AI CHATBOT WIDGET -->
+    <style>
+    #chat-fab {
+        position: fixed; bottom: 30px; right: 100px; z-index: 1050;
+        width: 60px; height: 60px; border-radius: 50%;
+        background: linear-gradient(135deg, #8c7b6c, #6b5c50);
+        color: #fff; border: none; box-shadow: 0 8px 25px rgba(140,123,108,0.4);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.3s; font-size: 1.4rem;
+    }
+    #chat-fab:hover { transform: scale(1.1) translateY(-3px); box-shadow: 0 12px 30px rgba(140,123,108,0.5); }
+    #chat-fab .fab-badge {
+        position: absolute; top: -2px; right: -2px;
+        width: 18px; height: 18px; background: #ef4444; border-radius: 50%;
+        font-size: 0.6rem; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; border: 2px solid #fff;
+    }
+
+    #chat-panel {
+        position: fixed; bottom: 100px; right: 30px; z-index: 1051;
+        width: 400px; max-height: 550px; background: #fff;
+        border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        display: none; flex-direction: column; overflow: hidden;
+        animation: chatSlideUp 0.3s ease;
+    }
+    @keyframes chatSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    #chat-panel .chat-header {
+        background: linear-gradient(135deg, #8c7b6c, #6b5c50);
+        padding: 18px 20px; display: flex; align-items: center; gap: 12px; color: #fff;
+    }
+    #chat-panel .chat-avatar {
+        width: 42px; height: 42px; background: rgba(255,255,255,0.2);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+    #chat-panel .chat-header-info h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+    #chat-panel .chat-header-info span { font-size: 0.75rem; opacity: 0.85; }
+    #chat-panel .chat-close { margin-left: auto; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.8; }
+    #chat-panel .chat-close:hover { opacity: 1; }
+
+    #chat-messages {
+        flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+        max-height: 350px; background: #faf9f8;
+    }
+    .chat-msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.6; word-wrap: break-word; }
+    .chat-msg.bot {
+        align-self: flex-start; background: #fff; color: #1a1a1a;
+        border: 1px solid #f0ebe3; border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .chat-msg.user {
+        align-self: flex-end; background: #8c7b6c; color: #fff;
+        border-bottom-right-radius: 4px;
+    }
+    .chat-msg.bot a { color: #8c7b6c; font-weight: 600; text-decoration: underline; }
+    .chat-msg.bot a:hover { color: #6b5c50; }
+
+    .chat-typing { display: flex; gap: 4px; padding: 12px 16px; align-self: flex-start; }
+    .chat-typing span {
+        width: 8px; height: 8px; background: #d1d5db; border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+    #chat-input-area {
+        padding: 14px 16px; border-top: 1px solid #f0ebe3; display: flex; gap: 10px; background: #fff;
+    }
+    #chat-input {
+        flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 14px;
+        font-size: 0.9rem; outline: none; background: #fdfdfc; transition: 0.2s;
+    }
+    #chat-input:focus { border-color: #8c7b6c; box-shadow: 0 0 0 3px rgba(140,123,108,0.1); }
+    #chat-send {
+        width: 42px; height: 42px; border-radius: 12px; border: none;
+        background: #8c7b6c; color: #fff; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.2s; font-size: 1rem; flex-shrink: 0;
+    }
+    #chat-send:hover { background: #6b5c50; }
+
+    @media (max-width: 480px) {
+        #chat-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; max-height: 70vh; }
+    }
+    </style>
+
+    <button id="chat-fab" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
+        <span class="fab-badge">AI</span>
+    </button>
+
+    <div id="chat-panel">
+        <div class="chat-header">
+            <div class="chat-avatar">🤖</div>
+            <div class="chat-header-info">
+                <h4>Nội Thất AI</h4>
+                <span><i class="fas fa-circle" style="font-size:0.5rem;color:#34d399;"></i> Trực tuyến · Gemini AI</span>
+            </div>
+            <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chat-messages">
+            <div class="chat-msg bot">
+                Xin chào! 👋 Em là <strong>Nội Thất AI</strong> - trợ lý tư vấn thiết kế nội thất.<br><br>
+                Anh/chị cần tư vấn gì ạ? Ví dụ:<br>
+                • <em>"Tìm giường gỗ sồi dưới 20 triệu"</em><br>
+                • <em>"Gợi ý đèn phòng ngủ phong cách minimalist"</em><br>
+                • <em>"Tư vấn nội thất phòng khách 20m²"</em>
+            </div>
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Hỏi về nội thất..." autocomplete="off">
+            <button id="chat-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+    function toggleChat() {
+        var panel = document.getElementById('chat-panel');
+        var fab = document.getElementById('chat-fab');
+        if (panel.style.display === 'flex') {
+            panel.style.display = 'none';
+            fab.innerHTML = '<i class="fas fa-comments"></i><span class="fab-badge">AI</span>';
+        } else {
+            panel.style.display = 'flex';
+            fab.innerHTML = '<i class="fas fa-times"></i>';
+            document.getElementById('chat-input').focus();
+            scrollChat();
+        }
+    }
+
+    function scrollChat() {
+        var box = document.getElementById('chat-messages');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function mdLinksToHtml(text) {
+        // Convert markdown [text](url) to HTML links
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+        // Convert **bold**
+        text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        // Convert *italic*
+        text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        // Convert newlines
+        text = text.replace(/\n/g, '<br>');
+        return text;
+    }
+
+    function sendChat() {
+        var input = document.getElementById('chat-input');
+        var msg = input.value.trim();
+        if (!msg) return;
+
+        var box = document.getElementById('chat-messages');
+
+        // Add user message
+        var userDiv = document.createElement('div');
+        userDiv.className = 'chat-msg user';
+        userDiv.textContent = msg;
+        box.appendChild(userDiv);
+        input.value = '';
+        scrollChat();
+
+        // Show typing indicator
+        var typing = document.createElement('div');
+        typing.className = 'chat-typing';
+        typing.id = 'typing-indicator';
+        typing.innerHTML = '<span></span><span></span><span></span>';
+        box.appendChild(typing);
+        scrollChat();
+
+        // Disable input
+        input.disabled = true;
+        document.getElementById('chat-send').disabled = true;
+
+        fetch('/webbanhang/index.php?url=chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var t = document.getElementById('typing-indicator');
+            if (t) t.remove();
+
+            var botDiv = document.createElement('div');
+            botDiv.className = 'chat-msg bot';
+            botDiv.innerHTML = mdLinksToHtml(data.reply || 'Xin lỗi, đã có lỗi xảy ra.');
+            box.appendChild(botDiv);
+            scrollChat();
+        })
+        .catch(function() {
+            var t = document.getElementById('typing-indicator');
+            if (t) t.remove();
+            var errDiv = document.createElement('div');
+            errDiv.className = 'chat-msg bot';
+            errDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại! 🙏';
+            box.appendChild(errDiv);
+            scrollChat();
+        })
+        .finally(function() {
+            input.disabled = false;
+            document.getElementById('chat-send').disabled = false;
+            input.focus();
+        });
+    }
+
+    document.getElementById('chat-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendChat();
+    });
+    </script>
 
 </div><!-- /.page content wrapper from header -->
 

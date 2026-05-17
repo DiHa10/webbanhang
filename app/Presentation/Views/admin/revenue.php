@@ -89,8 +89,8 @@
     .badge-soft { padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
     .badge-soft.month { background: #f0ebe3; color: var(--primary-accent); }
     .badge-soft.order-id { background: #1a1a1a; color: #fff; }
-    .badge-soft.info { background: #f0ebe3; color: var(--primary-accent); }
-    .badge-soft.primary { background: #e5e7eb; color: var(--text-pure); }
+    .badge-soft.info { background: #dbeafe; color: #1d4ed8; }
+    .badge-soft.primary { background: #e0e7ff; color: #4338ca; }
     .badge-soft.warning { background: #fef3c7; color: #d97706; }
     .badge-soft.success { background: #d1fae5; color: #059669; }
     .badge-soft.danger { background: #fee2e2; color: #dc2626; }
@@ -263,6 +263,31 @@
             </div>
         </div>
     </div>
+    <!-- Top Selling Products by Month -->
+    <div class="row mb-2">
+        <div class="col-12 mb-3">
+            <div class="modern-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-wrap gap-2">
+                    <div class="card-header-title border-0 mb-0 pb-0"><i class="fas fa-trophy" style="color: var(--warning-accent);"></i> Top Sản Phẩm Bán Chạy</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="topSellingMonth" class="form-control form-control-sm" style="width:auto; border-radius:8px; border:1px solid var(--border-soft); font-size:0.85rem; padding:6px 12px;">
+                            <?php
+                            if (empty($availableMonths)) $availableMonths = [date('Y-m')];
+                            foreach ($availableMonths as $m):
+                                $label = date('m/Y', strtotime($m . '-01'));
+                                $selected = ($m === date('Y-m')) ? 'selected' : '';
+                            ?>
+                                <option value="<?php echo $m; ?>" <?php echo $selected; ?>>Tháng <?php echo $label; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div id="topSellingContent" style="min-height:100px;">
+                    <div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Discount Codes -->
     <div class="row mb-2">
@@ -317,11 +342,16 @@
                                 <?php foreach ($orders as $order): ?>
                                     <?php
                                         $st = $order->status ?? 'pending';
-                                        $stClass = 'badge-soft warning';
-                                        $stText = 'Chờ xử lý';
-                                        if ($st === 'confirmed' || $st == 1) { $stClass = 'badge-soft success'; $stText = 'Đã duyệt'; }
-                                        elseif ($st === 'cancelled' || $st == 2) { $stClass = 'badge-soft danger'; $stText = 'Đã hủy'; }
-                                        $isProcessed = ($st === 'confirmed' || $st === 'cancelled' || $st == 1 || $st == 2);
+                                        $statusConfig = [
+                                            'pending'   => ['class' => 'badge-soft warning', 'text' => 'Chờ xác nhận', 'next' => 'confirmed', 'nextLabel' => 'Xác nhận'],
+                                            'confirmed' => ['class' => 'badge-soft info',    'text' => 'Đã xác nhận',  'next' => 'preparing', 'nextLabel' => 'Chuẩn bị hàng'],
+                                            'preparing' => ['class' => 'badge-soft primary', 'text' => 'Đang chuẩn bị','next' => 'shipping',  'nextLabel' => 'Giao hàng'],
+                                            'shipping'  => ['class' => 'badge-soft info',    'text' => 'Đang giao',    'next' => 'completed', 'nextLabel' => 'Hoàn thành'],
+                                            'completed' => ['class' => 'badge-soft success', 'text' => 'Hoàn thành',   'next' => null,        'nextLabel' => null],
+                                            'cancelled' => ['class' => 'badge-soft danger',  'text' => 'Đã hủy',       'next' => null,        'nextLabel' => null],
+                                        ];
+                                        $cfg = $statusConfig[$st] ?? $statusConfig['pending'];
+                                        $isFinished = ($st === 'completed' || $st === 'cancelled');
                                     ?>
                                     <tr class="admin-order-row">
                                         <td>
@@ -366,21 +396,23 @@
                                             <div class="small text-muted" style="font-size:0.75rem;"><i class="fas fa-envelope mr-1"></i><?php echo htmlspecialchars($order->customer_email); ?></div>
                                         </td>
                                         <td style="white-space: nowrap; font-size: 0.85rem;">
-                                            <span class="<?php echo $stClass; ?>" id="ostatus-<?php echo $order->id; ?>"><?php echo $stText; ?></span>
+                                            <span class="<?php echo $cfg['class']; ?>" id="ostatus-<?php echo $order->id; ?>"><?php echo $cfg['text']; ?></span>
                                         </td>
                                         <td class="text-right font-weight-bold" style="white-space: nowrap; font-size: 0.9rem; color:var(--text-pure);">
                                             <?php echo number_format($order->total_price, 0, ',', '.'); ?> đ
                                         </td>
-                                        <td class="text-right" id="action-cell-<?php echo $order->id; ?>">
-                                            <?php if (!$isProcessed): ?>
-                                                <button class="btn btn-sm btn-outline-success border-0 px-2" title="Chấp nhận đơn hàng" onclick="updateOrder(<?php echo $order->id; ?>, 1)">
-                                                    <i class="fas fa-check"></i>
+                                        <td class="text-right" id="action-cell-<?php echo $order->id; ?>" style="white-space:nowrap;">
+                                            <?php if (!$isFinished): ?>
+                                                <?php if ($cfg['next']): ?>
+                                                <button class="btn btn-sm btn-outline-success border-0 px-1" style="font-size:0.7rem;" title="<?php echo $cfg['nextLabel']; ?>" onclick="updateOrder(<?php echo $order->id; ?>, '<?php echo $cfg['next']; ?>')">
+                                                    <i class="fas fa-arrow-right"></i> <?php echo $cfg['nextLabel']; ?>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-danger border-0 px-2" title="Hủy đơn hàng" onclick="updateOrder(<?php echo $order->id; ?>, 2)">
+                                                <?php endif; ?>
+                                                <button class="btn btn-sm btn-outline-danger border-0 px-1" style="font-size:0.7rem;" title="Hủy" onclick="updateOrder(<?php echo $order->id; ?>, 'cancelled')">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             <?php else: ?>
-                                                <span class="text-muted small"><i class="fas fa-lock fa-sm mr-1"></i> Đã khóa</span>
+                                                <span class="text-muted" style="font-size:0.7rem;"><i class="fas fa-lock fa-sm"></i> Khóa</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -603,8 +635,18 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==== ORDER STATUS UPDATE ====
+    var statusLabels = {
+        'pending': {cls: 'badge-soft warning', text: 'Chờ xác nhận'},
+        'confirmed': {cls: 'badge-soft info', text: 'Đã xác nhận'},
+        'preparing': {cls: 'badge-soft primary', text: 'Đang chuẩn bị'},
+        'shipping': {cls: 'badge-soft info', text: 'Đang giao'},
+        'completed': {cls: 'badge-soft success', text: 'Hoàn thành'},
+        'cancelled': {cls: 'badge-soft danger', text: 'Đã hủy'}
+    };
+
     window.updateOrder = function(id, status) {
-        if (!confirm('Xác nhận đổi trạng thái đơn hàng này?')) return;
+        var actionText = status === 'cancelled' ? 'HỦY đơn hàng' : 'chuyển trạng thái đơn hàng';
+        if (!confirm('Xác nhận ' + actionText + ' #' + id + '?')) return;
         $.ajax({
             url: '/webbanhang/index.php?url=admin/updateOrderStatus',
             type: 'POST',
@@ -612,20 +654,7 @@ document.addEventListener("DOMContentLoaded", function() {
             dataType: 'json',
             success: function(res) {
                 if (res.success) {
-                    var el = $('#ostatus-' + id);
-                    if (status == 1) {
-                        el.removeClass().addClass('badge-soft success').text('Đã duyệt');
-                    } else if (status == 2) {
-                        el.removeClass().addClass('badge-soft danger').text('Đã hủy');
-                    }
-                    
-                    var cell = $('#action-cell-' + id);
-                    if (cell.length) {
-                        cell.html('<span class="text-muted small"><i class="fas fa-lock fa-sm mr-1"></i> Đã khóa</span>');
-                    }
-                    
-                    // Tải lại trang nhẹ nhàng để cập nhật lại doanh thu
-                    setTimeout(() => location.reload(), 1000);
+                    location.reload();
                 } else {
                     alert('Lỗi: ' + res.message);
                 }
@@ -662,6 +691,80 @@ document.addEventListener("DOMContentLoaded", function() {
 
         window.prevAdminOrderPage = function() { if(currentPage > 1) renderOrderPage(currentPage - 1); };
         window.nextAdminOrderPage = function() { if(currentPage < totalPages) renderOrderPage(currentPage + 1); };
+    }
+});
+</script>
+
+<style>
+    .top-selling-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .top-selling-table th { background: #faf9f7; color: var(--text-mutated); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 14px; border-bottom: 1px solid var(--border-soft); }
+    .top-selling-table td { padding: 12px 14px; border-bottom: 1px solid #f5f3f0; vertical-align: middle; font-size: 0.88rem; }
+    .top-selling-table tr:hover td { background: #fdfcfb; }
+    .top-rank { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 0.8rem; }
+    .top-rank.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
+    .top-rank.silver { background: linear-gradient(135deg, #d1d5db, #9ca3af); color: #fff; }
+    .top-rank.bronze { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+    .top-rank.normal { background: #f3f4f6; color: #6b7280; }
+    .top-product-img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid #f0ebe3; }
+    .top-product-name { font-weight: 600; color: var(--text-pure); }
+    .top-product-cat { font-size: 0.75rem; color: var(--text-mutated); }
+    .top-sold-badge { background: #fef3c7; color: #d97706; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .top-empty { text-align: center; padding: 3rem; color: var(--text-mutated); }
+    .top-empty i { font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.3; }
+</style>
+
+<script>
+// ==== TOP SELLING PRODUCTS ====
+function loadTopSelling(month) {
+    var container = document.getElementById('topSellingContent');
+    container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...</div>';
+    
+    $.ajax({
+        url: '/webbanhang/index.php?url=admin/topSelling&month=' + month,
+        type: 'GET',
+        dataType: 'json',
+        success: function(res) {
+            if (res.success && res.data.length > 0) {
+                var html = '<div class="table-responsive"><table class="top-selling-table">';
+                html += '<thead><tr><th style="width:50px">#</th><th>Sản phẩm</th><th class="text-center">Số lượng bán</th><th class="text-right">Doanh thu</th></tr></thead><tbody>';
+                
+                res.data.forEach(function(p, i) {
+                    var rankClass = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : 'normal'));
+                    var medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : ''));
+                    var imgSrc = p.image ? '/webbanhang/' + p.image : 'https://via.placeholder.com/44x44/f7f5f2/9ca3af?text=' + (i+1);
+                    var price = Number(p.total_revenue).toLocaleString('vi-VN');
+                    
+                    html += '<tr>';
+                    html += '<td><span class="top-rank ' + rankClass + '">' + (medal || (i+1)) + '</span></td>';
+                    html += '<td><div class="d-flex align-items-center gap-2">';
+                    html += '<img src="' + imgSrc + '" class="top-product-img">';
+                    html += '<div><div class="top-product-name">' + p.name + '</div>';
+                    html += '<div class="top-product-cat">' + (p.category_name || '') + ' · ' + Number(p.price).toLocaleString('vi-VN') + '₫</div></div></div></td>';
+                    html += '<td class="text-center"><span class="top-sold-badge">' + p.total_sold + ' sản phẩm</span></td>';
+                    html += '<td class="text-right font-weight-bold" style="color:var(--success-accent);">' + price + ' ₫</td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="top-empty"><i class="fas fa-box-open"></i>Chưa có dữ liệu bán hàng trong tháng này.</div>';
+            }
+        },
+        error: function() {
+            container.innerHTML = '<div class="top-empty"><i class="fas fa-exclamation-triangle"></i>Lỗi khi tải dữ liệu.</div>';
+        }
+    });
+}
+
+// Load on page ready
+$(document).ready(function() {
+    var sel = document.getElementById('topSellingMonth');
+    if (sel) {
+        loadTopSelling(sel.value);
+        sel.addEventListener('change', function() {
+            loadTopSelling(this.value);
+        });
     }
 });
 </script>

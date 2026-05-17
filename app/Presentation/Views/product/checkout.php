@@ -119,7 +119,7 @@
 
             <div class="section-heading">
                 <span>Thông tin liên hệ</span>
-                <a href="/webbanhang/index.php?url=account/login" class="login-link">Đã có tài khoản? Đăng nhập</a>
+                <a href="/webbanhang/index.php?url=account/login" class="login-link"></a>
             </div>
             <div class="form-floating">
                 <input type="email" name="customer_email" id="ck_email" placeholder=" " required value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>">
@@ -187,8 +187,40 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-pay">
-                Xác Nhận Thanh Toán <i class="fas fa-lock"></i>
+            <div class="section-heading mt-4">Phương thức thanh toán</div>
+            
+            <label class="ship-option selected" onclick="selectPayment('cod', this)">
+                <span><i class="fas fa-money-bill-wave"></i> Thanh toán khi nhận hàng (COD)</span>
+                <input type="radio" name="payment_method" value="cod" checked style="accent-color:#8c7b6c;">
+            </label>
+            <label class="ship-option" onclick="selectPayment('qr', this)">
+                <span><i class="fas fa-qrcode"></i> Chuyển khoản ngân hàng (QR Pay)</span>
+                <input type="radio" name="payment_method" value="qr" style="accent-color:#8c7b6c;">
+            </label>
+
+            <!-- QR Payment Panel -->
+            <div id="qr-payment-panel" style="display:none; margin-top:1.5rem; background:#faf9f8; border-radius:16px; padding:2rem; border:1px solid #f0ebe3; text-align:center;">
+                <div style="margin-bottom:1rem;">
+                    <span style="display:inline-flex; align-items:center; gap:6px; background:#dbeafe; color:#1e40af; padding:6px 14px; border-radius:20px; font-size:0.8rem; font-weight:600;">
+                        <i class="fas fa-info-circle"></i> Quét mã QR để thanh toán
+                    </span>
+                </div>
+                <div id="qr-code-wrap" style="background:#fff; display:inline-block; padding:1rem; border-radius:12px; border:1px solid #e5e7eb; margin-bottom:1rem;">
+                    <img id="qr-code-img" src="" alt="QR Code" style="width:220px; height:220px;">
+                </div>
+                <div style="font-size:0.85rem; color:#6b7280; line-height:1.7;">
+                    <div><strong>Ngân hàng:</strong> <span style="color:#1a1a1a;">MB Bank</span></div>
+                    <div><strong>Số TK:</strong> <span style="color:#1a1a1a;">0394867215</span></div>
+                    <div><strong>Chủ TK:</strong> <span style="color:#1a1a1a;">NỘI THẤT HIỆN ĐẠI</span></div>
+                    <div style="margin-top:0.5rem;"><strong>Nội dung CK:</strong> <span style="color:#ef4444; font-weight:700;" id="qr-transfer-content">DH_<?php echo time(); ?></span></div>
+                </div>
+                <div style="margin-top:1rem; font-size:0.8rem; color:#d97706; background:#fef3c7; padding:8px 14px; border-radius:8px; display:inline-block;">
+                    <i class="fas fa-exclamation-triangle"></i> Vui lòng ghi đúng nội dung chuyển khoản để đơn được xử lý nhanh nhất!
+                </div>
+            </div>
+
+            <button type="submit" class="btn-pay" id="btn-submit-order">
+                Xác Nhận Đặt Hàng <i class="fas fa-lock"></i>
             </button>
         </div>
 
@@ -232,6 +264,47 @@
 
 <?php include __DIR__ . '/../shaders/footer.php'; ?>
 <script>
+// Payment method config
+const BANK_ID = 'MB'; // Mã ngân hàng (MB Bank)
+const ACCOUNT_NO = '0394867215';
+const ACCOUNT_NAME = 'NOI THAT HIEN DAI';
+
+function selectPayment(method, el) {
+    el.querySelector('input').checked = true;
+    document.querySelectorAll('.ship-option').forEach(function(e) {
+        if (e.querySelector('input[name="payment_method"]')) {
+            e.classList.remove('selected');
+        }
+    });
+    el.classList.add('selected');
+
+    var qrPanel = document.getElementById('qr-payment-panel');
+    var btnSubmit = document.getElementById('btn-submit-order');
+    
+    if (method === 'qr') {
+        qrPanel.style.display = 'block';
+        btnSubmit.innerHTML = 'Đã Chuyển Khoản - Xác Nhận <i class="fas fa-check-circle"></i>';
+        generateQR();
+    } else {
+        qrPanel.style.display = 'none';
+        btnSubmit.innerHTML = 'Xác Nhận Đặt Hàng <i class="fas fa-lock"></i>';
+    }
+}
+
+function generateQR() {
+    var totalText = document.getElementById('total_price_display').textContent;
+    var amount = parseInt(totalText.replace(/[^\d]/g, '')) || 0;
+    var transferContent = document.getElementById('qr-transfer-content').textContent;
+    
+    // VietQR API: https://api.vietqr.io
+    var qrUrl = 'https://img.vietqr.io/image/' + BANK_ID + '-' + ACCOUNT_NO + '-compact2.jpg'
+              + '?amount=' + amount 
+              + '&addInfo=' + encodeURIComponent(transferContent)
+              + '&accountName=' + encodeURIComponent(ACCOUNT_NAME);
+    
+    document.getElementById('qr-code-img').src = qrUrl;
+}
+
 $(document).ready(function() {
     let baseTotal = <?php echo (int)$total_price; ?>;
     
@@ -250,6 +323,9 @@ $(document).ready(function() {
                 $('#total_price_display').text(new Intl.NumberFormat('vi-VN').format(newTotal) + ' ₫');
                 $('.voucher-row').after('<div class="text-success small fw-bold mb-3" style="color:#10b981;"><i class="fas fa-check-circle"></i> Đã áp dụng! Giảm ' + new Intl.NumberFormat('vi-VN').format(discountVal) + ' ₫</div>');
                 $('#btn_apply_discount').prop('disabled', true).css('opacity', 0.5);
+                
+                // Re-generate QR if QR panel is visible
+                if ($('#qr-payment-panel').is(':visible')) generateQR();
             } else {
                 alert(res.message);
             }

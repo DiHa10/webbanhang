@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+// Load Composer packages (PHPMailer, etc.)
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+}
+
 // Standard Autoloader for 3-tier App namespace
 spl_autoload_register(function ($class) {
     // Prefix: App\

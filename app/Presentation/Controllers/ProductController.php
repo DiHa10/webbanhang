@@ -189,6 +189,35 @@ class ProductController {
             exit;
         }
 
+        // Check stock before adding
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT name, stock FROM product WHERE id = ?");
+            $stmt->execute([$product_id]);
+            $productInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$productInfo) {
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'out_of_stock' => true, 'message' => 'Sản phẩm không tồn tại.']);
+                    exit;
+                }
+                header('Location: /webbanhang/index.php?url=product&error=notfound');
+                exit;
+            }
+
+            if (isset($productInfo['stock']) && (int)$productInfo['stock'] <= 0) {
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'out_of_stock' => true, 'message' => 'Xin lỗi, sản phẩm "' . $productInfo['name'] . '" hiện đã hết hàng!']);
+                    exit;
+                }
+                $_SESSION['out_of_stock_msg'] = 'Xin lỗi, sản phẩm "' . $productInfo['name'] . '" hiện đã hết hàng!';
+                header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/webbanhang/index.php?url=product'));
+                exit;
+            }
+        } catch (Exception $e) {}
+
         try {
             $this->orderService->addToCart($product_id, $qty);
         } catch (Exception $e) {
@@ -255,6 +284,10 @@ class ProductController {
             $customer_phone = $_POST['customer_phone'] ?? '';
             $address = $_POST['address'] ?? '';
             $discount_code = trim($_POST['discount_code'] ?? '');
+            $payment_method = $_POST['payment_method'] ?? 'cod';
+
+            // Save payment method to session for later use
+            $_SESSION['last_payment_method'] = $payment_method;
 
             $discount_amount_sub = 0;
             $cartTotal = $this->getCartTotal();

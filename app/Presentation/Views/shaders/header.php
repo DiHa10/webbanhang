@@ -130,64 +130,80 @@ try {
             border-bottom-color: #1a1a1a;
         }
 
-        /* Dropdown Mega Menu */
-        .mega-dropdown {
-            position: static !important;
-        }
-        .nav-dropdown {
+        /* Admin Dropdown */
+        .admin-dropdown {
             position: relative;
         }
-        .nav-dropdown-menu {
+        .admin-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            height: 56px;
+            padding: 0 0.85rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #fff;
+            background: #8c7b6c;
+            border-radius: 6px;
+            margin: 0 0.3rem;
+            height: 34px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .admin-dropdown-toggle:hover { background: #6b5c50; }
+        .admin-dropdown-menu {
             display: none;
             position: absolute;
-            top: 56px;
+            top: 100%;
+            right: 0;
+            min-width: 220px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            border: 1px solid #f0ebe3;
+            z-index: 1000;
+            padding: 0.5rem 0;
+            margin-top: 0;
+        }
+        .admin-dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: -10px;
             left: 0;
             right: 0;
-            width: 100vw;
-            background: #fff;
-            border-top: 1px solid #e8e3dc;
-            box-shadow: 0 16px 32px rgba(0,0,0,0.06);
-            z-index: 1000;
+            height: 10px;
         }
-        .mega-dropdown:hover .nav-dropdown-menu,
-        .nav-dropdown:hover .nav-dropdown-menu { display: block; }
-        
-        .mega-grid {
+        .admin-dropdown:hover .admin-dropdown-menu { display: block; }
+        .admin-dropdown-menu a {
             display: flex;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            gap: 3rem;
-            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.85rem;
+            color: #4b5563;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-weight: 500;
         }
-        .mega-column {
-            flex: 1;
-        }
-        .mega-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+        .admin-dropdown-menu a:hover {
+            background: #faf9f8;
             color: #1a1a1a;
-            position: relative;
-            padding-bottom: 0.6rem;
-            text-transform: capitalize;
-            border-bottom: 1px solid #eae5de;
         }
-        .mega-title a { color: #1a1a1a; text-decoration: none; }
-        .mega-title a:hover { color: #8c7b6c; text-decoration: none; }
-        
-        .mega-list {
-            list-style: none; padding: 0; margin: 0;
+        .admin-dropdown-menu a i {
+            width: 18px;
+            text-align: center;
+            color: #8c7b6c;
+            font-size: 0.9rem;
         }
-        .mega-list li { margin-bottom: 0.8rem; }
-        .mega-list a {
-            color: #666; font-size: 0.95rem; text-decoration: none;
-            transition: color 0.2s, padding-left 0.2s;
-            display: block; font-weight: 400; text-transform: none;
+        .admin-dropdown-menu .dropdown-divider {
+            height: 1px;
+            background: #f0ebe3;
+            margin: 0.3rem 0;
         }
-        .mega-list a:hover { color: #8c7b6c; padding-left: 6px; text-decoration: none; }
-        .mega-view-all { margin-top: 1.5rem !important; padding-top: 1rem; border-top: 1px dashed #eee; }
-        .mega-view-all a { color: #8c7b6c; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;}
 
         /* Admin pill button */
         .btn-api-pill {
@@ -374,23 +390,30 @@ try {
         <li>
             <a href="/webbanhang/index.php?url=product" id="nav-link-product">Danh Sách Sản Phẩm</a>
         </li>
-        <li><a href="/webbanhang/index.php?url=product/ranking">Top Sản Phẩm Bán Chạy</a></li>
+        <li><a href="/webbanhang/index.php?url=product/ranking">Top Bán Chạy</a></li>
         <li><a href="/webbanhang/index.php?url=blog">Blog</a></li>
         <?php $_isStaff = isset($_SESSION['role']) && $_SESSION['role'] === 'staff'; ?>
         <?php if (!$_isStaff && !$_isAdmin): ?>
         <li><a href="/webbanhang/index.php?url=home/contact">Liên Hệ</a></li>
         <?php endif; ?>
-        <?php if ($_isStaff): ?>
-        <li><a href="/webbanhang/index.php?url=admin/warehouse">Quản Lý Kho</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/contacts">Trả Lời Liên Hệ</a></li>
-        <?php endif; ?>
-        <?php if ($_isAdmin): ?>
-        <li><a href="/webbanhang/index.php?url=product/add">Thêm Sản Phẩm</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/revenue">Quản Lý Doanh Thu</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/sliders">Quản Lý Slide</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/accounts">Quản Lý Tài Khoản</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/warehouse">Quản Lý Kho</a></li>
-        <li><a href="/webbanhang/index.php?url=admin/contacts">Trả Lời Liên Hệ</a></li>
+
+        <?php if ($_isStaff || $_isAdmin): ?>
+        <li class="admin-dropdown">
+            <button class="admin-dropdown-toggle">
+                <i class="fas fa-cogs"></i> Quản Trị <i class="fas fa-chevron-down" style="font-size:0.5rem;"></i>
+            </button>
+            <div class="admin-dropdown-menu">
+                <?php if ($_isAdmin): ?>
+                <a href="/webbanhang/index.php?url=product/add"><i class="fas fa-plus-circle"></i> Thêm Sản Phẩm</a>
+                <a href="/webbanhang/index.php?url=admin/revenue"><i class="fas fa-chart-line"></i> Quản Lý Doanh Thu</a>
+                <a href="/webbanhang/index.php?url=admin/sliders"><i class="fas fa-images"></i> Quản Lý Slide</a>
+                <a href="/webbanhang/index.php?url=admin/accounts"><i class="fas fa-users-cog"></i> Quản Lý Tài Khoản</a>
+                <div class="dropdown-divider"></div>
+                <?php endif; ?>
+                <a href="/webbanhang/index.php?url=admin/warehouse"><i class="fas fa-warehouse"></i> Quản Lý Kho</a>
+                <a href="/webbanhang/index.php?url=admin/contacts"><i class="fas fa-envelope-open-text"></i> Trả Lời Liên Hệ</a>
+            </div>
+        </li>
         <?php endif; ?>
     </ul>
 
@@ -461,6 +484,11 @@ window.addToCartGlobal = function(id, btnElement) {
         dataType: 'json',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         success: function(res) {
+            if (res.out_of_stock) {
+                if(btnElement) btn.html(orig).css('pointer-events','auto');
+                showOutOfStockPopup(res.message || 'Sản phẩm đã hết hàng!');
+                return;
+            }
             if (res.success && btnElement) {
                 var badge = $('#cart-badge');
                 badge.text(res.total_items).show();
@@ -478,6 +506,31 @@ window.addToCartGlobal = function(id, btnElement) {
             alert('Lỗi mạng, vui lòng thử lại!'); 
         }
     });
+};
+
+window.showOutOfStockPopup = function(msg) {
+    var existing = document.getElementById('oos-popup-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'oos-popup-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s;';
+    
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:20px;padding:3rem 2.5rem;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.15);animation:popIn 0.3s;">
+            <div style="width:80px;height:80px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                <i class="fas fa-box-open" style="font-size:2rem;color:#ef4444;"></i>
+            </div>
+            <h3 style="font-family:'Lora',serif;font-size:1.4rem;color:#1a1a1a;margin-bottom:0.8rem;">Hết hàng rồi!</h3>
+            <p style="color:#6b7280;font-size:1rem;line-height:1.6;margin-bottom:2rem;">${msg}</p>
+            <button onclick="this.closest('#oos-popup-overlay').remove();" style="background:#8c7b6c;color:#fff;border:none;padding:0.8rem 2.5rem;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.2s;">
+                Đã hiểu
+            </button>
+        </div>
+    `;
+    
+    overlay.addEventListener('click', function(e) { if(e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
 };
 
 // Load categories into dropdown

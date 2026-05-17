@@ -4,6 +4,8 @@ namespace App\Presentation\Controllers;
 use App\BLL\AdminService;
 use App\BLL\SliderService;
 use App\Presentation\Middlewares\RoleMiddleware;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 use Exception;
 
 class AdminController {
@@ -22,6 +24,7 @@ class AdminController {
         try {
             $data = $this->adminService->getDashboardRevenue();
             extract($data);
+            $availableMonths = $this->adminService->getAvailableMonths();
         } catch (Exception $e) {
             $error = "Lỗi xử lý cơ sở dữ liệu: " . $e->getMessage();
             $orders = [];
@@ -30,6 +33,7 @@ class AdminController {
             $totalStock = 0;
             $productsInStock = [];
             $orderItemsMap = [];
+            $availableMonths = [date('Y-m')];
         }
 
         include __DIR__ . '/../Views/admin/revenue.php';
@@ -63,14 +67,92 @@ class AdminController {
             
             if ($id && $statusCode !== null) {
                 try {
-                    $this->adminService->updateOrderStatus($id, $statusCode);
-                    echo json_encode(['success' => true]);
+                    $result = $this->adminService->updateOrderStatus($id, $statusCode);
+                    
+                    // Send email notification
+                    if ($result['success'] && $result['order'] && !empty($result['order']->customer_email)) {
+                        $this->sendStatusEmail($result['order'], $result['new_status']);
+                    }
+                    
+                    echo json_encode(['success' => true, 'new_status' => $result['new_status']]);
                 } catch (Exception $e) {
                     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
                 }
             } else {
                 echo json_encode(['success' => false, 'message' => 'Missing data']);
             }
+        }
+    }
+
+    private function sendStatusEmail($order, $status) {
+        $statusLabels = [
+            'confirmed' => ['label' => 'Đã xác nhận', 'icon' => '✅', 'color' => '#10b981', 'msg' => 'Đơn hàng của bạn đã được xác nhận và sẽ sớm được chuẩn bị.'],
+            'preparing' => ['label' => 'Đang chuẩn bị', 'icon' => '📦', 'color' => '#f59e0b', 'msg' => 'Chúng tôi đang đóng gói sản phẩm của bạn.'],
+            'shipping'  => ['label' => 'Đang giao hàng', 'icon' => '🚚', 'color' => '#3b82f6', 'msg' => 'Đơn hàng đang trên đường đến bạn!'],
+            'completed' => ['label' => 'Hoàn thành', 'icon' => '🎉', 'color' => '#10b981', 'msg' => 'Đơn hàng đã giao thành công. Cảm ơn bạn đã mua sắm!'],
+            'cancelled' => ['label' => 'Đã hủy', 'icon' => '❌', 'color' => '#ef4444', 'msg' => 'Đơn hàng đã bị hủy. Nếu cần hỗ trợ, vui lòng liên hệ chúng tôi.'],
+        ];
+        
+        if (!isset($statusLabels[$status])) return;
+        $info = $statusLabels[$status];
+        
+        $subject = "[Nội Thất Hiện Đại] {$info['icon']} Đơn hàng #{$order->id} - {$info['label']}";
+        $total = number_format($order->total_price, 0, ',', '.') . ' ₫';
+        
+        $body = "
+        <html><body style='font-family:Arial,sans-serif;background:#f7f5f2;padding:20px;'>
+        <div style='max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);'>
+            <div style='background:{$info['color']};padding:30px;text-align:center;'>
+                <div style='font-size:3rem;'>{$info['icon']}</div>
+                <h1 style='color:#fff;margin:10px 0 5px;font-size:1.5rem;'>Đơn hàng #{$order->id}</h1>
+                <p style='color:rgba(255,255,255,0.9);margin:0;font-size:1.1rem;'>{$info['label']}</p>
+            </div>
+            <div style='padding:30px;'>
+                <p style='font-size:1rem;color:#4b5563;line-height:1.7;'>{$info['msg']}</p>
+                <div style='background:#f9fafb;border-radius:12px;padding:20px;margin:20px 0;'>
+                    <div style='margin-bottom:8px;'><strong>Khách hàng:</strong> {$order->customer_name}</div>
+                    <div style='margin-bottom:8px;'><strong>Điện thoại:</strong> {$order->customer_phone}</div>
+                    <div style='margin-bottom:8px;'><strong>Địa chỉ:</strong> {$order->address}</div>
+                    <div><strong>Tổng tiền:</strong> <span style='color:{$info['color']};font-weight:700;font-size:1.2rem;'>{$total}</span></div>
+                </div>
+                <p style='font-size:0.85rem;color:#9ca3af;text-align:center;margin-top:30px;'>Nội Thất Hiện Đại · Cảm ơn bạn đã tin tưởng</p>
+            </div>
+        </div>
+        </body></html>";
+        
+        try {
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'voduykha1011@gmail.com';
+            $mail->Password   = 'hukd djkj lset jsep';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->CharSet    = 'UTF-8';
+
+            $mail->setFrom('voduykha1011@gmail.com', 'Nội Thất Hiện Đại');
+            $mail->addAddress($order->customer_email, $order->customer_name);
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $body;
+
+            $mail->send();
+        } catch (Exception $e) {
+            error_log('Email error: ' . $e->getMessage());
+        }
+    }
+
+    public function topSelling() {
+        RoleMiddleware::requireRole(['admin']);
+        header('Content-Type: application/json; charset=utf-8');
+        $month = $_GET['month'] ?? date('Y-m');
+        try {
+            $products = $this->adminService->getTopSellingByMonth($month);
+            echo json_encode(['success' => true, 'data' => $products]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 

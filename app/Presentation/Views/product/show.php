@@ -148,3 +148,11 @@
 </div>
 
 <?php include __DIR__ . '/../shaders/footer.php'; ?>
+
+<?php if (!empty($_SESSION['out_of_stock_msg'])): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    showOutOfStockPopup(<?php echo json_encode($_SESSION['out_of_stock_msg']); ?>);
+});
+</script>
+<?php unset($_SESSION['out_of_stock_msg']); endif; ?>

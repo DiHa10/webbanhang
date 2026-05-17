@@ -86,12 +86,30 @@ class AdminService {
     }
 
     public function updateOrderStatus($id, $statusCode) {
-        $statusEnum = 'pending';
-        if ($statusCode == 1) $statusEnum = 'confirmed';
-        elseif ($statusCode == 2) $statusEnum = 'cancelled';
+        $statusMap = [
+            'pending' => 'pending',
+            'confirmed' => 'confirmed',
+            'preparing' => 'preparing',
+            'shipping' => 'shipping',
+            'completed' => 'completed',
+            'cancelled' => 'cancelled',
+        ];
+        
+        // Also support legacy numeric codes
+        if ($statusCode == 1) $statusCode = 'confirmed';
+        elseif ($statusCode == 2) $statusCode = 'cancelled';
+        
+        $statusEnum = $statusMap[$statusCode] ?? 'pending';
 
         $stmt = $this->db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        return $stmt->execute([$statusEnum, $id]);
+        $result = $stmt->execute([$statusEnum, $id]);
+
+        // Get order info for email
+        $orderStmt = $this->db->prepare("SELECT * FROM orders WHERE id = ?");
+        $orderStmt->execute([$id]);
+        $order = $orderStmt->fetch(PDO::FETCH_OBJ);
+
+        return ['success' => $result, 'order' => $order, 'new_status' => $statusEnum];
     }
 
     public function updateProductStock($id, $action, $value = 0) {
@@ -108,6 +126,40 @@ class AdminService {
         $stmtCheck = $this->db->prepare("SELECT stock FROM product WHERE id = ?");
         $stmtCheck->execute([$id]);
         return $stmtCheck->fetchColumn();
+    }
+
+    public function getTopSellingByMonth($month = null) {
+        if (!$month) {
+            $month = date('Y-m');
+        }
+        
+        $stmt = $this->db->prepare("
+            SELECT p.id, p.name, p.price, p.image, c.name as category_name,
+                   SUM(od.quantity) as total_sold,
+                   SUM(od.quantity * od.price) as total_revenue
+            FROM order_details od
+            JOIN product p ON od.product_id = p.id
+            JOIN orders o ON od.order_id = o.id
+            LEFT JOIN category c ON p.category_id = c.id
+            WHERE DATE_FORMAT(o.created_at, '%Y-%m') = ?
+              AND (o.status != 'cancelled' OR o.status IS NULL)
+            GROUP BY p.id, p.name, p.price, p.image, c.name
+            ORDER BY total_sold DESC
+            LIMIT 10
+        ");
+        $stmt->execute([$month]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAvailableMonths() {
+        $stmt = $this->db->prepare("
+            SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m') as month
+            FROM orders
+            WHERE created_at IS NOT NULL
+            ORDER BY month DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }
 ?>

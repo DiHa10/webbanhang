@@ -63,6 +63,10 @@
 <div class="ranking-page">
     <div class="ranking-header">
         <h1>Bảng Xếp Hạng Theo Danh Mục</h1>
+        <div style="margin: 1rem 0; display:inline-flex; align-items:center; gap:8px; background:#fef3c7; color:#92400e; padding:8px 20px; border-radius:30px; font-weight:600; font-size:0.95rem;">
+            <i class="fas fa-calendar-alt"></i>
+            Tháng <?php echo date('m'); ?> / <?php echo date('Y'); ?>
+        </div>
         <p>Bảng xếp hạng các sản phẩm nội thất bán chạy nhất trong tháng đối với từng hạng mục, từ cao tới thấp.</p>
     </div>
 
